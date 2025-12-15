@@ -2,11 +2,14 @@ package com.example.powertracker.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ShowChart
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.outlined.ElectricMeter
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShowChart
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.powertracker.navigation.BottomNavItem.Home.label
 
@@ -24,7 +27,7 @@ sealed class BottomNavItem(
     object Meters : BottomNavItem(
         route = "meters",
         label = "Meters",
-        icon = Icons.Outlined.ElectricMeter
+        icon = Icons.Outlined.Speed
 
     )
 
@@ -38,7 +41,7 @@ sealed class BottomNavItem(
     object Insights : BottomNavItem(
         route = "insights",
         label = "Insights",
-        icon = Icons.Outlined.ShowChart
+        icon = Icons.Outlined.Insights
     )
 
     object Settings : BottomNavItem(

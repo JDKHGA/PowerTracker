@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.powertracker.ui.theme.IndigoGradient
 
 @Composable
@@ -48,10 +49,10 @@ fun QuickActionsRow() {
 }
 
 @Composable
-fun RowScope.PrimaryActionButton(text: String, icon: ImageVector) {
+fun RowScope.PrimaryActionButton(text: String, icon: ImageVector, navController: NavController? = null) {
     Button(
         modifier = Modifier.weight(1f).height(80.dp),
-        onClick = {},
+        onClick = { navController?.navigate("addToken") },
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent
         ),
@@ -77,7 +78,7 @@ fun RowScope.PrimaryActionButton(text: String, icon: ImageVector) {
 }
 
 @Composable
-fun RowScope.SecondaryActionButton(text: String, icon: ImageVector) {
+fun RowScope.SecondaryActionButton(text: String, icon: ImageVector, navController: NavController? = null) {
     OutlinedButton(
         modifier = Modifier.weight(1f).height(80.dp),
         onClick = {},

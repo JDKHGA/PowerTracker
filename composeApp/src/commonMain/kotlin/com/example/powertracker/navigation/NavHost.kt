@@ -39,6 +39,9 @@ fun AppNavHost() {
             composable(BottomNavItem.Settings.route) {
                 SettingsScreen()
             }
+            composable("addToken") {
+                AddTokenScreen(navController)
+            }
         }
     }
 }
