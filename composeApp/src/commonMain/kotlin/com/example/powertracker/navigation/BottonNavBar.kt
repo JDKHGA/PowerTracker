@@ -6,6 +6,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
@@ -20,7 +22,12 @@ fun BottomNavBar(navController: NavController) {
         BottomNavItem.Settings
     )
 
-    NavigationBar {
+    NavigationBar(
+        // 1. Set the container color to transparent
+        containerColor = Color.Transparent,
+        // 2. Set the tonal elevation to 0.dp to remove any tint
+        tonalElevation = 0.dp
+    ) {
 
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route

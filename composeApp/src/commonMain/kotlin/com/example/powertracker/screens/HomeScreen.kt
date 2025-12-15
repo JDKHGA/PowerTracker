@@ -5,9 +5,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.powertracker.cards.BalanceCard
 import com.example.powertracker.cards.PredictionCard
 import com.example.powertracker.cards.UsageCard
@@ -18,7 +18,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun HomeScreen() {
+fun HomeScreen(navController: NavController? = null) {
 
     // Create ViewModel (simple version, no DI yet)
     val viewModel = remember { HomeViewModel() }
@@ -92,7 +92,7 @@ fun HomeScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             // ---------------- Quick Actions ----------------
-            QuickActionsRow()
+            QuickActionsRow(navController)
         }
     }
 }

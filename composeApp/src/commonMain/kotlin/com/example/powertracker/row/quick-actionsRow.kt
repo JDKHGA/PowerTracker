@@ -32,7 +32,7 @@ import androidx.navigation.NavController
 import com.example.powertracker.ui.theme.IndigoGradient
 
 @Composable
-fun QuickActionsRow() {
+fun QuickActionsRow(navController: NavController? = null) {
     Column {
         Text("Quick Actions", fontWeight = FontWeight.Medium)
         Spacer(Modifier.height(12.dp))
@@ -41,7 +41,7 @@ fun QuickActionsRow() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            PrimaryActionButton("Add Token", Icons.Default.Add)
+            PrimaryActionButton("Add Token", Icons.Default.Add, navController)
             SecondaryActionButton("History", Icons.Default.History)
             SecondaryActionButton("Insights", Icons.Default.Insights)
         }
