@@ -1,5 +1,5 @@
 package com.example.powertracker.screens
 
-fun TokenHistoryScreen(){
+fun SettingsScreen(){
 
 }
