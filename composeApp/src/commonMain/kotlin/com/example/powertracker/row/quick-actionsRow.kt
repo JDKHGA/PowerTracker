@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.powertracker.navigation.BottomNavItem
 import com.example.powertracker.ui.theme.IndigoGradient
 
 @Composable
@@ -42,8 +43,8 @@ fun QuickActionsRow(navController: NavController? = null) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             PrimaryActionButton("Add Token", Icons.Default.Add, navController)
-            SecondaryActionButton("History", Icons.Default.History)
-            SecondaryActionButton("Insights", Icons.Default.Insights)
+            SecondaryActionButton("History", Icons.Default.History, {navController?.navigate(BottomNavItem.History.route)})
+            SecondaryActionButton("Insights", Icons.Default.Insights, {navController?.navigate(BottomNavItem.Insights.route)})
         }
     }
 }
@@ -78,10 +79,10 @@ fun RowScope.PrimaryActionButton(text: String, icon: ImageVector, navController:
 }
 
 @Composable
-fun RowScope.SecondaryActionButton(text: String, icon: ImageVector, navController: NavController? = null) {
+fun RowScope.SecondaryActionButton(text: String, icon: ImageVector, onClick: ()-> Unit) {
     OutlinedButton(
         modifier = Modifier.weight(1f).height(80.dp),
-        onClick = {},
+        onClick = onClick,
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

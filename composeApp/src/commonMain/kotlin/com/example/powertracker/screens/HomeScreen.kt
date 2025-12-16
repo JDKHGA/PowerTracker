@@ -8,9 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.powertracker.cards.BalanceCard
-import com.example.powertracker.cards.PredictionCard
-import com.example.powertracker.cards.UsageCard
+import com.example.powertracker.cards.homescreen.BalanceCard
+import com.example.powertracker.cards.homescreen.PredictionCard
+import com.example.powertracker.cards.homescreen.UsageCard
 import com.example.powertracker.row.QuickActionsRow
 import com.example.powertracker.viewmodel.HomeViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview

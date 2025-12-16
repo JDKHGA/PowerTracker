@@ -1,4 +1,4 @@
-package com.example.powertracker.cards
+package com.example.powertracker.cards.homescreen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
