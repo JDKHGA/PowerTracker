@@ -7,6 +7,7 @@ import com.example.powertracker.navigation.BottomNavBar
 import com.example.powertracker.navigation.BottomNavItem
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -20,17 +21,21 @@ fun AppNavHost() {
         bottomBar = {
             BottomNavBar(navController)
         }
-    ) { padding ->
+    ) { innerPadding ->
 
         NavHost(
             navController = navController,
             startDestination = BottomNavItem.Home.route,
+            modifier = Modifier.padding(
+                top = innerPadding.calculateTopPadding(),
+                bottom = 68.dp // Set bottom padding to zero to close the gap
+            ) // Apply the padding here
         ) {
             composable(BottomNavItem.Home.route) {
-                HomeScreen(navController)
+                HomeScreen()
             }
             composable(BottomNavItem.Meters.route) {
-                MetersScreen(navController)
+                MetersScreen()
             }
             composable(BottomNavItem.History.route) {
                 TokenHistoryScreen()
