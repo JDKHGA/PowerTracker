@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 class SettingsScreenViewModel {
 
     // State for the notification toggle
-    val notificationsEnabled = mutableStateOf(true)
+    val notificationsEnabled = mutableStateOf(false)
 
     // State for the alert threshold slider (0f to 50f range, starts at 10f)
     val alertThreshold = mutableStateOf(10f)
