@@ -25,7 +25,6 @@ fun AppNavHost() {
         NavHost(
             navController = navController,
             startDestination = BottomNavItem.Home.route,
-            modifier = Modifier.padding(padding)
         ) {
             composable(BottomNavItem.Home.route) {
                 HomeScreen(navController)
