@@ -1,8 +1,9 @@
 package com.example.powertracker.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
 
-class HomeViewModel {
+class HomeViewModel: ViewModel() {
 
     val balanceKwh = mutableStateOf("12.6 kWh")
     val balanceGhs = mutableStateOf("GHS 42")

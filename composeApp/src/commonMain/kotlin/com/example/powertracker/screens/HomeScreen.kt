@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.powertracker.cards.homescreen.BalanceCard
 import com.example.powertracker.cards.homescreen.PredictionCard
@@ -32,7 +34,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun HomeScreen(navController: NavController? = null) {
 
     // Create ViewModel (simple version, no DI yet)
-    val viewModel = remember { HomeViewModel() }
+    val viewModel: HomeViewModel = viewModel { HomeViewModel() }
+
     val options = listOf("Home Meter", "Shop Meter")
 
     Scaffold(

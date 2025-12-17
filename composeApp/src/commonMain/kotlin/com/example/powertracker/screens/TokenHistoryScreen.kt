@@ -29,7 +29,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun TokenHistoryScreen(navController: NavController? = null) {
 
-    val viewModel = remember { TokenScreenViewModel() }
+    val viewModel: TokenScreenViewModel = viewModel { TokenScreenViewModel() }
 
     Scaffold(
         topBar = {

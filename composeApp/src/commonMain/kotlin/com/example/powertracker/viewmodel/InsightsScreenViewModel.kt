@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
-class InsightsScreenViewModel {
+class InsightsScreenViewModel: ViewModel() {
 
     var avgSpending = mutableStateOf("GHS 330")
         private set

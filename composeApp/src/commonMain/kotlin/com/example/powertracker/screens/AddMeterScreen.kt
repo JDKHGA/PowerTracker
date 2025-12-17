@@ -32,12 +32,14 @@ import com.example.powertracker.textfield.CustomTextField
 import com.example.powertracker.ui.theme.IndigoGradient
 import com.example.powertracker.viewmodel.AddMeterScreenViewModel
 import com.example.powertracker.viewmodel.AddTokenViewModel
+import com.example.powertracker.viewmodel.HomeViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
 fun AddMeterScreen(navController: NavController? = null) {
-    val viewModel = remember { AddMeterScreenViewModel() }
+    val viewModel: AddMeterScreenViewModel = viewModel { AddMeterScreenViewModel() }
+
     Scaffold(
         topBar = {
             TopBar(

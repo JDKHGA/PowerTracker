@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.powertracker.elements.TopBar.TopBar
 import com.example.powertracker.textfield.CustomTextField
@@ -38,7 +39,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 @Preview
 fun AddTokenScreen(navController: NavController? = null) { // Removed unused tokenCode parameter
-    val viewModel = remember { AddTokenViewModel() }
+    val viewModel: AddTokenViewModel = viewModel { AddTokenViewModel() }
 
     Scaffold(
         topBar = {

@@ -31,7 +31,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 @Preview
 fun MetersScreen(navController: NavController? = null) {
-    val viewModel = remember { MeterScreenViewModel() }
+    val viewModel: MeterScreenViewModel = viewModel { MeterScreenViewModel() }
     Scaffold(
         topBar = {
             TopBar(

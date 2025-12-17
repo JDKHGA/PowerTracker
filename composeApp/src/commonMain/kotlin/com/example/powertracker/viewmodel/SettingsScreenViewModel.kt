@@ -1,8 +1,9 @@
 package com.example.powertracker.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
 
-class SettingsScreenViewModel {
+class SettingsScreenViewModel : ViewModel() {
 
     // State for the notification toggle
     val notificationsEnabled = mutableStateOf(false)

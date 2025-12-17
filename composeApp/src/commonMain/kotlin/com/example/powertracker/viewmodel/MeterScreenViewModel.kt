@@ -1,8 +1,9 @@
 package com.example.powertracker.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
 
-class MeterScreenViewModel {
+class MeterScreenViewModel : ViewModel(){
 
     val meterName = mutableStateOf("Home Meter")
     val meterNumber = mutableStateOf("04-0123-456789-00")

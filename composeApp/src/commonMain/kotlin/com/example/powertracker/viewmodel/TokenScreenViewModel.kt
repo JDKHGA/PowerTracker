@@ -1,8 +1,9 @@
 package com.example.powertracker.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
 
-class TokenScreenViewModel {
+class TokenScreenViewModel: ViewModel() {
 
     val amount = mutableStateOf("GHS 100.00")
     val date = mutableStateOf("8 Dec 2025")
