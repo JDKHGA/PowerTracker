@@ -42,7 +42,7 @@ fun QuickActionsRow(navController: NavController? = null) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            PrimaryActionButton("Add Token", Icons.Default.Add, navController)
+            PrimaryActionButton("Add Token", Icons.Default.Add, {navController?.navigate("addToken")})
             SecondaryActionButton("History", Icons.Default.History, {navController?.navigate(BottomNavItem.History.route)})
             SecondaryActionButton("Insights", Icons.Default.Insights, {navController?.navigate(BottomNavItem.Insights.route)})
         }
@@ -50,10 +50,10 @@ fun QuickActionsRow(navController: NavController? = null) {
 }
 
 @Composable
-fun RowScope.PrimaryActionButton(text: String, icon: ImageVector, navController: NavController? = null) {
+fun RowScope.PrimaryActionButton(text: String, icon: ImageVector, onClick: ()-> Unit) {
     Button(
         modifier = Modifier.weight(1f).height(80.dp),
-        onClick = { navController?.navigate("addToken") },
+        onClick = onClick ,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent
         ),

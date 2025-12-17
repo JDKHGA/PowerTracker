@@ -32,10 +32,10 @@ fun AppNavHost() {
             ) // Apply the padding here
         ) {
             composable(BottomNavItem.Home.route) {
-                HomeScreen()
+                HomeScreen(navController)
             }
             composable(BottomNavItem.Meters.route) {
-                MetersScreen()
+                MetersScreen(navController)
             }
             composable(BottomNavItem.History.route) {
                 TokenHistoryScreen()
@@ -50,7 +50,7 @@ fun AppNavHost() {
                 AddTokenScreen(navController)
             }
             composable("addMeter") {
-                AddMeterScreen()
+                AddMeterScreen(navController)
             }
 
         }

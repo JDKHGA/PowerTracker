@@ -38,7 +38,6 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 @Preview
 fun AddTokenScreen(navController: NavController? = null) { // Removed unused tokenCode parameter
-
     val viewModel = remember { AddTokenViewModel() }
 
     Scaffold(
