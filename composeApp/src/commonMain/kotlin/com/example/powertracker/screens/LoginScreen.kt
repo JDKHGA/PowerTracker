@@ -97,6 +97,7 @@ fun LoginScreen(navController: NavController? = null) {
             onClick = {
                 scope.launch {
                     try {
+                        error = null
                         supabase.auth.signInWith(Email) {
                             email = emailInput
                             password = passwordInput
@@ -105,7 +106,12 @@ fun LoginScreen(navController: NavController? = null) {
                             popUpTo("login") { inclusive = true }
                         }
                     } catch (e: Exception) {
-                        error = "Login failed: ${e.message}"
+                        val message = e.message ?: ""
+                        error = if (message.contains("email_not_confirmed")) {
+                            "Please verify your email address before logging in."
+                        } else {
+                            "Login failed: ${e.message}"
+                        }
                     }
                 }
             },

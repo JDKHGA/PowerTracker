@@ -46,6 +46,7 @@ fun RegistrationScreen(navController: NavController? = null) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    var successMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     Column(
@@ -102,6 +103,14 @@ fun RegistrationScreen(navController: NavController? = null) {
             )
         }
 
+        successMessage?.let {
+            Text(
+                text = it,
+                color = Color(0xFF4CAF50),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
@@ -109,16 +118,23 @@ fun RegistrationScreen(navController: NavController? = null) {
             onClick = {
                 scope.launch {
                     try {
+                        error = null
+                        successMessage = null
                         supabase.auth.signUpWith(Email) {
                             this.email = email
                             this.password = password
-                            // full_name is passed to raw_user_meta_data and handled by Supabase trigger
                             data = buildJsonObject {
                                 put("full_name", fullName)
                             }
                         }
-                        navController?.navigate("home") {
-                            popUpTo("register") { inclusive = true }
+                        
+                        // Check if session exists (auto-login) or if confirmation is required
+                        if (supabase.auth.currentSessionOrNull() != null) {
+                            navController?.navigate("home") {
+                                popUpTo("register") { inclusive = true }
+                            }
+                        } else {
+                            successMessage = "Registration successful! Please check your email to confirm your account."
                         }
                     } catch (e: Exception) {
                         error = "Registration failed: ${e.message}"
