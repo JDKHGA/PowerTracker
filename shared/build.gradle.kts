@@ -21,6 +21,10 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)
+            api(libs.supabase.client)
+            api(libs.supabase.auth)
+            api(libs.supabase.postgrest)
+            implementation(libs.ktor.client.core)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

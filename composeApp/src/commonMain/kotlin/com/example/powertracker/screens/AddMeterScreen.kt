@@ -15,13 +15,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,8 +32,6 @@ import com.example.powertracker.elements.TopBar.TopBar
 import com.example.powertracker.textfield.CustomTextField
 import com.example.powertracker.ui.theme.IndigoGradient
 import com.example.powertracker.viewmodel.AddMeterScreenViewModel
-import com.example.powertracker.viewmodel.AddTokenViewModel
-import com.example.powertracker.viewmodel.HomeViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -55,8 +54,8 @@ fun AddMeterScreen(navController: NavController? = null) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp), // Add overall padding for the content
-            verticalArrangement = Arrangement.spacedBy(16.dp) // Add space between each element
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             CustomTextField(
                 value = viewModel.meterName.value,
@@ -72,8 +71,6 @@ fun AddMeterScreen(navController: NavController? = null) {
                 placeholder = "e.g., 04-0575-475893-00"
             )
 
-
-            // Wrap the Radio Group in a column to add a label
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(text = "Meter Type", fontWeight = FontWeight.Medium)
                 MultiplatformRadioGroup(
@@ -83,26 +80,44 @@ fun AddMeterScreen(navController: NavController? = null) {
                 )
             }
 
+            viewModel.error.value?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
 
-            Spacer(Modifier.weight(1f)) // Pushes the Save button to the bottom
+            Spacer(Modifier.weight(1f))
 
             Button(
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                onClick = { /* TODO: Implement Save Token action */ },
+                enabled = !viewModel.isLoading.value,
+                onClick = { 
+                    viewModel.saveMeter {
+                        navController?.popBackStack()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 contentPadding = PaddingValues(0.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .background(IndigoGradient, RoundedCornerShape(12.dp))
+                        .background(
+                            brush = if (viewModel.isLoading.value) SolidColor(Color.Gray) else IndigoGradient, 
+                            shape = RoundedCornerShape(12.dp)
+                        )
                         .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Add Meter", color = Color.White)
+                    if (viewModel.isLoading.value) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.height(24.dp))
+                    } else {
+                        Text("Add Meter", color = Color.White)
+                    }
                 }
             }
         }
     }
 }
-
