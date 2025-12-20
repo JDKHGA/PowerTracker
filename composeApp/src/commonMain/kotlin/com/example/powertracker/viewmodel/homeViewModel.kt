@@ -33,6 +33,8 @@ class HomeViewModel : ViewModel() {
 
     val meterDropdownExpanded = mutableStateOf(false)
     val isLoading = mutableStateOf(false)
+    val isRefreshing = mutableStateOf(false)
+    val error = mutableStateOf<String?>(null)
 
     init {
         loadMeters()
@@ -42,11 +44,21 @@ class HomeViewModel : ViewModel() {
         return (round(value * 100) / 100.0).toString()
     }
 
+    fun refresh() {
+        viewModelScope.launch {
+            isRefreshing.value = true
+            loadMeters()
+            isRefreshing.value = false
+        }
+    }
+
     fun loadMeters() {
         viewModelScope.launch {
             isLoading.value = true
+            error.value = null
             try {
-                val userId = supabase.auth.currentUserOrNull()?.id
+                val user = supabase.auth.currentUserOrNull()
+                val userId = user?.id
                 if (userId != null) {
                     val result = supabase.postgrest.from("meters")
                         .select {
@@ -66,10 +78,14 @@ class HomeViewModel : ViewModel() {
                             val updated = meters.find { it.id == current.id } ?: meters[0]
                             selectMeter(updated)
                         }
+                    } else {
+                        error.value = "No meters found for your account."
                     }
+                } else {
+                    error.value = "Please log in to see your meters."
                 }
             } catch (e: Exception) {
-                // Handle error
+                error.value = "Connection error: ${e.message}"
             } finally {
                 isLoading.value = false
             }
@@ -136,8 +152,8 @@ class HomeViewModel : ViewModel() {
                 loadTodayUsage(meter.id ?: "")
 
             } catch (e: Exception) {
-                balanceKwh.value = "${meter.balanceKwh} kWh"
-                balanceGhs.value = "GHS ${meter.balanceGhs}"
+                balanceKwh.value = "${formatValue(meter.balanceKwh)} kWh"
+                balanceGhs.value = "GHS ${formatValue(meter.balanceGhs)}"
             }
         }
     }
