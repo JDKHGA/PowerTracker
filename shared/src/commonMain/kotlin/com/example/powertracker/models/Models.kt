@@ -22,6 +22,10 @@ data class Meter(
     @SerialName("meter_number")
     val meterNumber: String,
     val type: String,
+    @SerialName("balance_kwh")
+    val balanceKwh: Double = 0.0,
+    @SerialName("balance_ghs")
+    val balanceGhs: Double = 0.0,
     @SerialName("created_at")
     val createdAt: String? = null
 )

@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -18,7 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.powertracker.cards.homescreen.BalanceCard
@@ -35,8 +33,6 @@ fun HomeScreen(navController: NavController? = null) {
 
     // Create ViewModel (simple version, no DI yet)
     val viewModel: HomeViewModel = viewModel { HomeViewModel() }
-
-    val options = listOf("Home Meter", "Shop Meter")
 
     Scaffold(
         // Set the background color of the main content area to white
@@ -74,7 +70,7 @@ fun HomeScreen(navController: NavController? = null) {
                             ) {
                                 // This is the visible part of the dropdown menu
                                 TextField(
-                                    value = viewModel.selectedMeter.value,
+                                    value = viewModel.selectedMeter.value?.name ?: "Select Meter",
                                     onValueChange = {},
                                     readOnly = true,
                                     textStyle = TextStyle(fontSize = 14.sp), // Reduce font size
@@ -100,11 +96,11 @@ fun HomeScreen(navController: NavController? = null) {
                                         viewModel.meterDropdownExpanded.value = false
                                     }
                                 ) {
-                                    options.forEach { selectionOption ->
+                                    viewModel.meters.forEach { meter ->
                                         DropdownMenuItem(
-                                            text = { Text(selectionOption) },
+                                            text = { Text(meter.name) },
                                             onClick = {
-                                                viewModel.selectMeter(selectionOption)
+                                                viewModel.selectMeter(meter)
                                             }
                                         )
                                     }

@@ -35,7 +35,11 @@ class AddTokenViewModel : ViewModel() {
                 val userId = supabase.auth.currentUserOrNull()?.id
                 if (userId != null) {
                     val result = supabase.postgrest.from("meters")
-                        .select()
+                        .select {
+                            filter {
+                                eq("user_id", userId)
+                            }
+                        }
                         .decodeList<Meter>()
                     meters.value = result
                     if (result.isNotEmpty()) {
@@ -55,10 +59,15 @@ class AddTokenViewModel : ViewModel() {
         val amt = amount.value.toDoubleOrNull()
         val unts = units.value.toDoubleOrNull()
         val date = purchaseDate.value
-        val meterId = selectedMeter.value?.id
+        val currentMeter = selectedMeter.value
 
-        if (code.isBlank() || amt == null || unts == null || date.isBlank() || meterId == null) {
+        if (code.isBlank() || amt == null || unts == null || date.isBlank() || currentMeter == null) {
             error.value = "Please fill in all fields correctly"
+            return
+        }
+
+        val meterId = currentMeter.id ?: run {
+            error.value = "Selected meter has no ID"
             return
         }
 
@@ -66,6 +75,13 @@ class AddTokenViewModel : ViewModel() {
             isLoading.value = true
             error.value = null
             try {
+                // 1. Fetch latest meter data to ensure we have the correct current balance
+                val latestMeter = supabase.postgrest.from("meters")
+                    .select {
+                        filter { eq("id", meterId) }
+                    }.decodeSingle<Meter>()
+
+                // 2. Insert the token record
                 val token = Token(
                     meterId = meterId,
                     tokenCode = code,
@@ -73,11 +89,25 @@ class AddTokenViewModel : ViewModel() {
                     units = unts,
                     purchaseDate = date
                 )
-
                 supabase.postgrest.from("tokens").insert(token)
+
+                // 3. Calculate new balance (Addition)
+                val newBalanceKwh = latestMeter.balanceKwh + unts
+                val newBalanceGhs = latestMeter.balanceGhs + amt
+
+                // 4. Update the meter record
+                supabase.postgrest.from("meters").update(
+                    {
+                        set("balance_kwh", newBalanceKwh)
+                        set("balance_ghs", newBalanceGhs)
+                    }
+                ) {
+                    filter { eq("id", meterId) }
+                }
+
                 onSuccess()
             } catch (e: Exception) {
-                error.value = "Failed to save token: ${e.message}"
+                error.value = "Failed to save token and update balance: ${e.message}"
             } finally {
                 isLoading.value = false
             }

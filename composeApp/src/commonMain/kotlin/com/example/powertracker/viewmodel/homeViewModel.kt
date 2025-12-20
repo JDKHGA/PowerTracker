@@ -1,24 +1,163 @@
 package com.example.powertracker.viewmodel
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.powertracker.auth.supabase
+import com.example.powertracker.models.Meter
+import com.example.powertracker.models.UsageLog
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.math.round
+import kotlin.time.Duration.Companion.hours
 
-class HomeViewModel: ViewModel() {
+class HomeViewModel : ViewModel() {
 
-    val balanceKwh = mutableStateOf("12.6 kWh")
-    val balanceGhs = mutableStateOf("GHS 42")
-    val daysLeft = mutableStateOf("Estimated 5 days left")
+    val meters = mutableStateListOf<Meter>()
+    val selectedMeter = mutableStateOf<Meter?>(null)
+    
+    val balanceKwh = mutableStateOf("0.0 kWh")
+    val balanceGhs = mutableStateOf("GHS 0.00")
+    val daysLeft = mutableStateOf("Calculating...")
 
-    val usage = mutableStateOf("Today's Usage: 2.3 kWh")
-    val prediction = mutableStateOf("Based on your usage, credit will run out on Thursday afternoon")
+    val usage = mutableStateOf("Today's Usage: 0.0 kWh")
+    val prediction = mutableStateOf("Prediction data unavailable")
 
-    val selectedMeter = mutableStateOf("Home Meter")
     val meterDropdownExpanded = mutableStateOf(false)
+    val isLoading = mutableStateOf(false)
 
-    fun selectMeter(meter: String) {
-        selectedMeter.value = meter
-        meterDropdownExpanded.value = false
+    init {
+        loadMeters()
     }
 
+    private fun formatValue(value: Double): String {
+        return (round(value * 100) / 100.0).toString()
+    }
 
+    fun loadMeters() {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val userId = supabase.auth.currentUserOrNull()?.id
+                if (userId != null) {
+                    val result = supabase.postgrest.from("meters")
+                        .select {
+                            filter {
+                                eq("user_id", userId)
+                            }
+                        }.decodeList<Meter>()
+                    
+                    meters.clear()
+                    meters.addAll(result)
+                    
+                    if (meters.isNotEmpty()) {
+                        val current = selectedMeter.value
+                        if (current == null) {
+                            selectMeter(meters[0])
+                        } else {
+                            val updated = meters.find { it.id == current.id } ?: meters[0]
+                            selectMeter(updated)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Handle error
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
+
+    fun selectMeter(meter: Meter) {
+        selectedMeter.value = meter
+        meterDropdownExpanded.value = false
+        simulateConsumption(meter)
+    }
+
+    private fun simulateConsumption(meter: Meter) {
+        viewModelScope.launch {
+            try {
+                val lastLog = supabase.postgrest.from("usage_logs")
+                    .select {
+                        filter { eq("meter_id", meter.id ?: "") }
+                        order("logged_at", Order.DESCENDING)
+                        limit(1)
+                    }.decodeSingleOrNull<UsageLog>()
+
+                val now = Clock.System.now()
+                val lastLogTime = lastLog?.loggedAt?.let { Instant.parse(it) } ?: (now - 1.hours)
+                
+                val duration = now - lastLogTime
+                val hoursPassed = duration.inWholeMilliseconds / 3600000.0
+                
+                if (hoursPassed > 0.1) { 
+                    val hourlyRate = 0.25 
+                    val consumedKwh = hoursPassed * hourlyRate
+                    
+                    val newLog = UsageLog(
+                        meterId = meter.id ?: "",
+                        usageKwh = consumedKwh
+                    )
+                    supabase.postgrest.from("usage_logs").insert(newLog)
+
+                    val newBalanceKwh = (meter.balanceKwh - consumedKwh).coerceAtLeast(0.0)
+                    val ghsReduction = if (meter.balanceKwh > 0) {
+                        (meter.balanceGhs / meter.balanceKwh) * consumedKwh
+                    } else {
+                        0.0
+                    }
+                    val newBalanceGhs = (meter.balanceGhs - ghsReduction).coerceAtLeast(0.0)
+
+                    supabase.postgrest.from("meters").update(
+                        {
+                            set("balance_kwh", newBalanceKwh)
+                            set("balance_ghs", newBalanceGhs)
+                        }
+                    ) {
+                        filter { eq("id", meter.id ?: "") }
+                    }
+
+                    balanceKwh.value = "${formatValue(newBalanceKwh)} kWh"
+                    balanceGhs.value = "GHS ${formatValue(newBalanceGhs)}"
+                } else {
+                    balanceKwh.value = "${formatValue(meter.balanceKwh)} kWh"
+                    balanceGhs.value = "GHS ${formatValue(meter.balanceGhs)}"
+                }
+                
+                loadTodayUsage(meter.id ?: "")
+                
+            } catch (e: Exception) {
+                balanceKwh.value = "${meter.balanceKwh} kWh"
+                balanceGhs.value = "GHS ${meter.balanceGhs}"
+            }
+        }
+    }
+
+    private fun loadTodayUsage(meterId: String) {
+        viewModelScope.launch {
+            try {
+                val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
+                
+                val logs = supabase.postgrest.from("usage_logs")
+                    .select {
+                        filter {
+                            eq("meter_id", meterId)
+                            gte("logged_at", today)
+                        }
+                    }.decodeList<UsageLog>()
+                
+                val totalUsage = logs.sumOf { it.usageKwh }
+                usage.value = "Today's Usage: ${formatValue(totalUsage)} kWh"
+            } catch (e: Exception) {
+                usage.value = "Today's Usage: Error"
+            }
+        }
+    }
 }
