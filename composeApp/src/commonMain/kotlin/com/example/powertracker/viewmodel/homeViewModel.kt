@@ -17,12 +17,13 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.round
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.ExperimentalTime
 
 class HomeViewModel : ViewModel() {
 
     val meters = mutableStateListOf<Meter>()
     val selectedMeter = mutableStateOf<Meter?>(null)
-    
+
     val balanceKwh = mutableStateOf("0.0 kWh")
     val balanceGhs = mutableStateOf("GHS 0.00")
     val daysLeft = mutableStateOf("Calculating...")
@@ -53,10 +54,10 @@ class HomeViewModel : ViewModel() {
                                 eq("user_id", userId)
                             }
                         }.decodeList<Meter>()
-                    
+
                     meters.clear()
                     meters.addAll(result)
-                    
+
                     if (meters.isNotEmpty()) {
                         val current = selectedMeter.value
                         if (current == null) {
@@ -81,6 +82,7 @@ class HomeViewModel : ViewModel() {
         simulateConsumption(meter)
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun simulateConsumption(meter: Meter) {
         viewModelScope.launch {
             try {
@@ -93,14 +95,14 @@ class HomeViewModel : ViewModel() {
 
                 val now = Clock.System.now()
                 val lastLogTime = lastLog?.loggedAt?.let { Instant.parse(it) } ?: (now - 1.hours)
-                
+
                 val duration = now - lastLogTime
                 val hoursPassed = duration.inWholeMilliseconds / 3600000.0
-                
-                if (hoursPassed > 0.1) { 
-                    val hourlyRate = 0.25 
+
+                if (hoursPassed > 0.1) {
+                    val hourlyRate = 0.25
                     val consumedKwh = hoursPassed * hourlyRate
-                    
+
                     val newLog = UsageLog(
                         meterId = meter.id ?: "",
                         usageKwh = consumedKwh
@@ -130,9 +132,9 @@ class HomeViewModel : ViewModel() {
                     balanceKwh.value = "${formatValue(meter.balanceKwh)} kWh"
                     balanceGhs.value = "GHS ${formatValue(meter.balanceGhs)}"
                 }
-                
+
                 loadTodayUsage(meter.id ?: "")
-                
+
             } catch (e: Exception) {
                 balanceKwh.value = "${meter.balanceKwh} kWh"
                 balanceGhs.value = "GHS ${meter.balanceGhs}"
@@ -140,11 +142,12 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun loadTodayUsage(meterId: String) {
         viewModelScope.launch {
             try {
                 val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
-                
+
                 val logs = supabase.postgrest.from("usage_logs")
                     .select {
                         filter {
@@ -152,7 +155,7 @@ class HomeViewModel : ViewModel() {
                             gte("logged_at", today)
                         }
                     }.decodeList<UsageLog>()
-                
+
                 val totalUsage = logs.sumOf { it.usageKwh }
                 usage.value = "Today's Usage: ${formatValue(totalUsage)} kWh"
             } catch (e: Exception) {
