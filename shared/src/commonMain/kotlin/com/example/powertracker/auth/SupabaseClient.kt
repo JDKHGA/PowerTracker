@@ -10,6 +10,9 @@ val supabase = createSupabaseClient(
     supabaseUrl = SUPABASE_URL,
     supabaseKey = SUPABASE_ANON_KEY
 ) {
-    install(Auth)
+    install(Auth) {
+        // This enables session persistence automatically
+        // It will save the session to the platform's secure storage
+    }
     install(Postgrest)
 }

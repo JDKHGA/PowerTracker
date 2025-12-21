@@ -85,7 +85,7 @@ class HomeViewModel : ViewModel() {
                     error.value = "Please log in to see your meters."
                 }
             } catch (e: Exception) {
-                error.value = "Connection error: ${e.message}"
+                error.value = "Load error: ${e.message}"
             } finally {
                 isLoading.value = false
             }
@@ -102,9 +102,12 @@ class HomeViewModel : ViewModel() {
     private fun simulateConsumption(meter: Meter) {
         viewModelScope.launch {
             try {
+                val meterId = meter.id ?: return@launch
+                
+                // 1. Get the last usage log
                 val lastLog = supabase.postgrest.from("usage_logs")
                     .select {
-                        filter { eq("meter_id", meter.id ?: "") }
+                        filter { eq("meter_id", meterId) }
                         order("logged_at", Order.DESCENDING)
                         limit(1)
                     }.decodeSingleOrNull<UsageLog>()
@@ -115,16 +118,22 @@ class HomeViewModel : ViewModel() {
                 val duration = now - lastLogTime
                 val hoursPassed = duration.inWholeMilliseconds / 3600000.0
 
-                if (hoursPassed > 0.1) {
-                    val hourlyRate = 0.25
-                    val consumedKwh = hoursPassed * hourlyRate
+                // If hoursPassed is very large (first time), cap it at 1 hour for safety
+                val cappedHours = if (lastLog == null) 1.0 else hoursPassed
 
+                if (cappedHours > 0.05) { // Log if at least 3 minutes have passed
+                    val hourlyRate = 0.25
+                    val consumedKwh = cappedHours * hourlyRate
+
+                    // 2. Log this simulated usage
                     val newLog = UsageLog(
-                        meterId = meter.id ?: "",
-                        usageKwh = consumedKwh
+                        meterId = meterId,
+                        usageKwh = consumedKwh,
+                        loggedAt = now.toString() // Explicitly send timestamp
                     )
                     supabase.postgrest.from("usage_logs").insert(newLog)
 
+                    // 3. Update the meter's balance
                     val newBalanceKwh = (meter.balanceKwh - consumedKwh).coerceAtLeast(0.0)
                     val ghsReduction = if (meter.balanceKwh > 0) {
                         (meter.balanceGhs / meter.balanceKwh) * consumedKwh
@@ -139,7 +148,7 @@ class HomeViewModel : ViewModel() {
                             set("balance_ghs", newBalanceGhs)
                         }
                     ) {
-                        filter { eq("id", meter.id ?: "") }
+                        filter { eq("id", meterId) }
                     }
 
                     balanceKwh.value = "${formatValue(newBalanceKwh)} kWh"
@@ -149,9 +158,10 @@ class HomeViewModel : ViewModel() {
                     balanceGhs.value = "GHS ${formatValue(meter.balanceGhs)}"
                 }
 
-                loadTodayUsage(meter.id ?: "")
+                loadTodayUsage(meterId)
 
             } catch (e: Exception) {
+                error.value = "Simulation error: ${e.message}"
                 balanceKwh.value = "${formatValue(meter.balanceKwh)} kWh"
                 balanceGhs.value = "GHS ${formatValue(meter.balanceGhs)}"
             }
@@ -162,20 +172,22 @@ class HomeViewModel : ViewModel() {
     private fun loadTodayUsage(meterId: String) {
         viewModelScope.launch {
             try {
-                val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
-
+                // Get the start of today in local time
+                val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                val todayStart = "${now.date}T00:00:00Z"
+                
                 val logs = supabase.postgrest.from("usage_logs")
                     .select {
                         filter {
                             eq("meter_id", meterId)
-                            gte("logged_at", today)
+                            gte("logged_at", todayStart)
                         }
                     }.decodeList<UsageLog>()
 
                 val totalUsage = logs.sumOf { it.usageKwh }
                 usage.value = "Today's Usage: ${formatValue(totalUsage)} kWh"
             } catch (e: Exception) {
-                usage.value = "Today's Usage: Error"
+                usage.value = "Today's Usage: --"
             }
         }
     }
