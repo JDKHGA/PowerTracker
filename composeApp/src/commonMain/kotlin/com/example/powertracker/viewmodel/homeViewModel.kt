@@ -19,6 +19,7 @@ import kotlin.math.round
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 class HomeViewModel : ViewModel() {
 
     val meters = mutableStateListOf<Meter>()
@@ -79,10 +80,10 @@ class HomeViewModel : ViewModel() {
                             selectMeter(updated)
                         }
                     } else {
-                        error.value = "No meters found for your account."
+                        error.value = "No meters found."
                     }
                 } else {
-                    error.value = "Please log in to see your meters."
+                    error.value = "User session not found."
                 }
             } catch (e: Exception) {
                 error.value = "Load error: ${e.message}"
@@ -98,13 +99,11 @@ class HomeViewModel : ViewModel() {
         simulateConsumption(meter)
     }
 
-    @OptIn(ExperimentalTime::class)
     private fun simulateConsumption(meter: Meter) {
         viewModelScope.launch {
             try {
                 val meterId = meter.id ?: return@launch
-                
-                // 1. Get the last usage log
+
                 val lastLog = supabase.postgrest.from("usage_logs")
                     .select {
                         filter { eq("meter_id", meterId) }
@@ -117,23 +116,20 @@ class HomeViewModel : ViewModel() {
 
                 val duration = now - lastLogTime
                 val hoursPassed = duration.inWholeMilliseconds / 3600000.0
-
-                // If hoursPassed is very large (first time), cap it at 1 hour for safety
+                
                 val cappedHours = if (lastLog == null) 1.0 else hoursPassed
 
-                if (cappedHours > 0.05) { // Log if at least 3 minutes have passed
+                if (cappedHours > 0.05) { 
                     val hourlyRate = 0.25
                     val consumedKwh = cappedHours * hourlyRate
 
-                    // 2. Log this simulated usage
                     val newLog = UsageLog(
                         meterId = meterId,
                         usageKwh = consumedKwh,
-                        loggedAt = now.toString() // Explicitly send timestamp
+                        loggedAt = now.toString()
                     )
                     supabase.postgrest.from("usage_logs").insert(newLog)
 
-                    // 3. Update the meter's balance
                     val newBalanceKwh = (meter.balanceKwh - consumedKwh).coerceAtLeast(0.0)
                     val ghsReduction = if (meter.balanceKwh > 0) {
                         (meter.balanceGhs / meter.balanceKwh) * consumedKwh
@@ -161,21 +157,19 @@ class HomeViewModel : ViewModel() {
                 loadTodayUsage(meterId)
 
             } catch (e: Exception) {
-                error.value = "Simulation error: ${e.message}"
-                balanceKwh.value = "${formatValue(meter.balanceKwh)} kWh"
-                balanceGhs.value = "GHS ${formatValue(meter.balanceGhs)}"
+                error.value = "Sim error: ${e.message}"
+                balanceKwh.value = "${meter.balanceKwh} kWh"
+                balanceGhs.value = "GHS ${meter.balanceGhs}"
             }
         }
     }
 
-    @OptIn(ExperimentalTime::class)
     private fun loadTodayUsage(meterId: String) {
         viewModelScope.launch {
             try {
-                // Get the start of today in local time
                 val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                 val todayStart = "${now.date}T00:00:00Z"
-                
+
                 val logs = supabase.postgrest.from("usage_logs")
                     .select {
                         filter {
