@@ -31,6 +31,8 @@ class HomeViewModel : ViewModel() {
 
     val usage = mutableStateOf("Today's Usage: 0.0 kWh")
     val prediction = mutableStateOf("Prediction data unavailable")
+    
+    val dailyUsagePoints = mutableStateListOf<Float>()
 
     val meterDropdownExpanded = mutableStateOf(false)
     val isLoading = mutableStateOf(false)
@@ -167,7 +169,8 @@ class HomeViewModel : ViewModel() {
     private fun loadTodayUsage(meterId: String) {
         viewModelScope.launch {
             try {
-                val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                val nowTime = Clock.System.now()
+                val now = nowTime.toLocalDateTime(TimeZone.currentSystemDefault())
                 val todayStart = "${now.date}T00:00:00Z"
 
                 val logs = supabase.postgrest.from("usage_logs")
@@ -176,10 +179,33 @@ class HomeViewModel : ViewModel() {
                             eq("meter_id", meterId)
                             gte("logged_at", todayStart)
                         }
+                        order("logged_at", Order.ASCENDING)
                     }.decodeList<UsageLog>()
 
                 val totalUsage = logs.sumOf { it.usageKwh }
                 usage.value = "Today's Usage: ${formatValue(totalUsage)} kWh"
+                
+                // Group by hour for the graph
+                val hourlyUsage = FloatArray(24) { 0f }
+                logs.forEach { log ->
+                    val logLoggedAt = log.loggedAt
+                    if (logLoggedAt != null) {
+                        try {
+                            val logTime = Instant.parse(logLoggedAt).toLocalDateTime(TimeZone.currentSystemDefault())
+                            if (logTime.date == now.date) {
+                                hourlyUsage[logTime.hour] += log.usageKwh.toFloat()
+                            }
+                        } catch (e: Exception) {}
+                    }
+                }
+                
+                // Show up to current hour
+                val currentHour = now.hour
+                dailyUsagePoints.clear()
+                for (i in 0..currentHour) {
+                    dailyUsagePoints.add(hourlyUsage[i])
+                }
+
             } catch (e: Exception) {
                 usage.value = "Today's Usage: --"
             }

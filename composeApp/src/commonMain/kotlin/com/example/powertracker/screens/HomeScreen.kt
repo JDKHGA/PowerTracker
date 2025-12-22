@@ -135,7 +135,8 @@ fun HomeScreen(navController: NavController? = null) {
 
             // ---------------- Usage Card ----------------
             UsageCard(
-                usage = viewModel.usage.value
+                usage = viewModel.usage.value,
+                points = viewModel.dailyUsagePoints
             )
 
             Spacer(modifier = Modifier.height(16.dp))

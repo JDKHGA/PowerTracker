@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun UsageCard(
-    usage: String
+    usage: String,
+    points: List<Float> = emptyList()
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -40,33 +41,45 @@ fun UsageCard(
 
             Spacer(Modifier.height(16.dp))
 
-            // Placeholder for the line graph
-            LineGraph()
+            LineGraph(points)
         }
     }
 }
 
 @Composable
-fun LineGraph() {
-    val indigoColor = Color(0xFF3F51B5) // A solid color from your Indigo theme for the graph
+fun LineGraph(points: List<Float>) {
+    val indigoColor = Color(0xFF3F51B5)
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
     ) {
-        val path = Path().apply {
-            moveTo(0f, size.height * 0.6f)
-            cubicTo(
-                size.width * 0.15f, size.height * 0.8f,
-                size.width * 0.25f, size.height * 0.4f,
-                size.width * 0.4f, size.height * 0.5f
+        if (points.size < 2) {
+            // Draw a flat line if not enough data
+            val y = size.height * 0.8f
+            drawLine(
+                color = indigoColor.copy(alpha = 0.3f),
+                start = androidx.compose.ui.geometry.Offset(0f, y),
+                end = androidx.compose.ui.geometry.Offset(size.width, y),
+                strokeWidth = 3f
             )
-            cubicTo(
-                size.width * 0.55f, size.height * 0.6f,
-                size.width * 0.65f, size.height * 0.2f,
-                size.width * 0.8f, size.height * 0.3f
-            )
-            lineTo(size.width, size.height * 0.4f)
+            return@Canvas
+        }
+
+        val maxUsage = (points.maxOrNull() ?: 1f).coerceAtLeast(0.1f)
+        val path = Path()
+        
+        val xInterval = size.width / (points.size - 1)
+        
+        points.forEachIndexed { index, value ->
+            val x = index * xInterval
+            val y = size.height - (value / maxUsage * size.height * 0.8f) - (size.height * 0.1f)
+            
+            if (index == 0) {
+                path.moveTo(x, y)
+            } else {
+                path.lineTo(x, y)
+            }
         }
 
         drawPath(
