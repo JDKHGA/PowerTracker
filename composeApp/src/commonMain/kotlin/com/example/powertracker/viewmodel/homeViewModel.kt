@@ -106,6 +106,14 @@ class HomeViewModel : ViewModel() {
             try {
                 val meterId = meter.id ?: return@launch
 
+                // If balance is zero, stop simulating consumption
+                if (meter.balanceKwh <= 0) {
+                    balanceKwh.value = "0.0 kWh"
+                    balanceGhs.value = "GHS 0.00"
+                    loadTodayUsage(meterId)
+                    return@launch
+                }
+
                 val lastLog = supabase.postgrest.from("usage_logs")
                     .select {
                         filter { eq("meter_id", meterId) }
@@ -123,7 +131,7 @@ class HomeViewModel : ViewModel() {
 
                 if (cappedHours > 0.05) { 
                     val hourlyRate = 0.25
-                    val consumedKwh = cappedHours * hourlyRate
+                    val consumedKwh = (cappedHours * hourlyRate).coerceAtMost(meter.balanceKwh)
 
                     val newLog = UsageLog(
                         meterId = meterId,
