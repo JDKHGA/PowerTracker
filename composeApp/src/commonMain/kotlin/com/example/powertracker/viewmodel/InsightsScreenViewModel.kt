@@ -11,7 +11,6 @@ import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import io.ktor.client.call.body
-import io.ktor.client.request.setBody
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
@@ -22,6 +21,9 @@ import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
 import kotlin.time.ExperimentalTime
+
+@Serializable
+data class AIInsightRequest(val meterId: String)
 
 @Serializable
 data class AIInsightResponse(
@@ -63,6 +65,7 @@ class InsightsScreenViewModel: ViewModel() {
                 val now = Clock.System.now()
                 val thirtyDaysAgo = now.minus(30, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
                 
+                // Added .limit(200) to prevent timeout and speed up loading
                 val logs = supabase.postgrest.from("usage_logs")
                     .select {
                         filter {
@@ -70,6 +73,7 @@ class InsightsScreenViewModel: ViewModel() {
                             gte("logged_at", thirtyDaysAgo.toString())
                         }
                         order("logged_at", Order.ASCENDING)
+                        limit(200) 
                     }.decodeList<UsageLog>()
 
                 val tokens = supabase.postgrest.from("tokens")
@@ -133,8 +137,8 @@ class InsightsScreenViewModel: ViewModel() {
         }.sumOf { it.usageKwh }
         
         val weekdayUsage = totalUsage - weekendUsage
-        val weekendDailyAvg = weekendUsage / 2.0
-        val weekdayDailyAvg = weekdayUsage / 5.0
+        val weekendDailyAvg = if (distinctDays > 0) weekendUsage / 2.0 else 0.0
+        val weekdayDailyAvg = if (distinctDays > 0) weekdayUsage / 5.0 else 0.0
         
         val diff = if (weekdayDailyAvg > 0) {
             ((weekendDailyAvg - weekdayDailyAvg) / weekdayDailyAvg * 100).roundToInt()
@@ -146,7 +150,6 @@ class InsightsScreenViewModel: ViewModel() {
             else -> "Consistent"
         }
 
-        // Add initial local recommendations
         recommendations.clear()
         if (diff > 10) {
             recommendations.add("Your weekend usage is $diff% higher than weekdays.")
@@ -155,20 +158,18 @@ class InsightsScreenViewModel: ViewModel() {
 
     private suspend fun fetchAIAnalysis(meterId: String) {
         try {
-            // Call the Edge Function named 'get-ai-insights'
-            val response = supabase.functions.invoke("get-ai-insights") {
-                setBody(mapOf("meterId" to meterId))
-            }
+            val response = supabase.functions.invoke(
+                function = "get-ai-insights",
+                body = AIInsightRequest(meterId = meterId)
+            )
 
-            // Update the UI with real AI data
             val aiData = response.body<AIInsightResponse>()
-            aiForecast.value = "AI Forecast: " + aiData.forecastDate
+            aiForecast.value = aiData.forecastDate
             
-            // Add AI recommendations to our list
             recommendations.addAll(aiData.suggestions)
 
         } catch (e: Exception) {
-            aiForecast.value = "AI is currently unavailable. Using local estimates."
+            aiForecast.value = "AI Analysis Error: ${e.message}"
         }
     }
 }

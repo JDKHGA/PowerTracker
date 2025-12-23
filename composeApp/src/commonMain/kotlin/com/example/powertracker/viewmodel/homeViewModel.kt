@@ -12,10 +12,14 @@ import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.round
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 
@@ -111,6 +115,7 @@ class HomeViewModel : ViewModel() {
                     balanceKwh.value = "0.0 kWh"
                     balanceGhs.value = "GHS 0.00"
                     loadTodayUsage(meterId)
+                    updatePredictions(meter, emptyList())
                     return@launch
                 }
 
@@ -159,9 +164,13 @@ class HomeViewModel : ViewModel() {
 
                     balanceKwh.value = "${formatValue(newBalanceKwh)} kWh"
                     balanceGhs.value = "GHS ${formatValue(newBalanceGhs)}"
+                    
+                    val updatedMeter = meter.copy(balanceKwh = newBalanceKwh, balanceGhs = newBalanceGhs)
+                    loadHistoricalLogs(updatedMeter)
                 } else {
                     balanceKwh.value = "${formatValue(meter.balanceKwh)} kWh"
                     balanceGhs.value = "GHS ${formatValue(meter.balanceGhs)}"
+                    loadHistoricalLogs(meter)
                 }
 
                 loadTodayUsage(meterId)
@@ -172,6 +181,68 @@ class HomeViewModel : ViewModel() {
                 balanceGhs.value = "GHS ${meter.balanceGhs}"
             }
         }
+    }
+
+    private fun loadHistoricalLogs(meter: Meter) {
+        viewModelScope.launch {
+            try {
+                val now = Clock.System.now()
+                val sevenDaysAgo = now.minus(7, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
+                
+                val logs = supabase.postgrest.from("usage_logs")
+                    .select {
+                        filter {
+                            eq("meter_id", meter.id!!)
+                            gte("logged_at", sevenDaysAgo.toString())
+                        }
+                    }.decodeList<UsageLog>()
+                
+                updatePredictions(meter, logs)
+            } catch (e: Exception) {}
+        }
+    }
+
+    private fun updatePredictions(meter: Meter, logs: List<UsageLog>) {
+        if (logs.isEmpty() || meter.balanceKwh <= 0) {
+            daysLeft.value = "0 days"
+            prediction.value = "Please top up to see predictions."
+            return
+        }
+
+        val totalUsage = logs.sumOf { it.usageKwh }
+        val distinctDays = logs.mapNotNull { it.loggedAt?.take(10) }.distinct().size.coerceAtLeast(1)
+        val dailyBurnRate = totalUsage / distinctDays
+        
+        if (dailyBurnRate <= 0) {
+            daysLeft.value = "Calculating..."
+            prediction.value = "Monitoring your usage patterns..."
+            return
+        }
+
+        val remainingDays = (meter.balanceKwh / dailyBurnRate).roundToInt()
+        daysLeft.value = "$remainingDays days"
+        
+        val now = Clock.System.now()
+        val depletionDate = now.plus(remainingDays, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
+        val dateString = depletionDate.toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
+        
+        // Month end survival check
+        val currentMonth = now.toLocalDateTime(TimeZone.currentSystemDefault()).month
+        val nextMonthStart = now.plus(1, DateTimeUnit.MONTH, TimeZone.currentSystemDefault())
+        // Simplified check: if remaining days is less than days to end of month
+        val daysInMonth = 30 // Approximate
+        val currentDay = now.toLocalDateTime(TimeZone.currentSystemDefault()).dayOfMonth
+        val daysToMonthEnd = daysInMonth - currentDay
+        
+        val survivalStatus = if (remainingDays >= daysToMonthEnd) {
+            "You have enough power to last until the end of the month."
+        } else {
+            val deficit = (daysToMonthEnd - remainingDays) * dailyBurnRate
+            val costToSurvive = if (meter.balanceKwh > 0) (meter.balanceGhs / meter.balanceKwh) * deficit else 0.0
+            "You may need approx. GHS ${costToSurvive.roundToInt()} more to reach next month."
+        }
+
+        prediction.value = "Estimated depletion: $dateString. $survivalStatus"
     }
 
     private fun loadTodayUsage(meterId: String) {
