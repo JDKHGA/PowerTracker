@@ -125,7 +125,7 @@ class HomeViewModel : ViewModel() {
                 val lastLogTime = lastLog?.loggedAt?.let { Instant.parse(it) } ?: (now - 1.hours)
 
                 val duration = now - lastLogTime
-                val hoursPassed = duration.inWholeMilliseconds / 3600000.0
+                val hoursPassed = duration.inWholeMilliseconds.toDouble() / 3600000.0
                 
                 val cappedHours = if (lastLog == null) 1.0 else hoursPassed
 

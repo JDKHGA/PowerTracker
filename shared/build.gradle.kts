@@ -57,6 +57,7 @@ kotlin {
                 api(libs.supabase.client)
                 api(libs.supabase.auth)
                 api(libs.supabase.postgrest)
+                api(libs.supabase.functions)
                 implementation(libs.ktor.client.core)
             }
         }

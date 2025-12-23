@@ -28,17 +28,33 @@ fun ConsumptionCard(peakUsageTime: String, weekendVsWeekday: String) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.ElectricBolt, contentDescription = "Consumption", tint = Color(0xFFF9A825))
+                Icon(
+                    Icons.Default.ElectricBolt,
+                    contentDescription = "Consumption",
+                    tint = Color(0xFFF9A825)
+                )
                 Spacer(Modifier.width(8.dp))
                 Text("Consumption Pattern", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text("Peak Usage Time", color = Color.Gray)
                 Text(peakUsageTime, fontWeight = FontWeight.Medium)
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text("Weekend vs Weekday", color = Color.Gray)
-                Text(weekendVsWeekday, fontWeight = FontWeight.Medium, color = Color.Red.copy(alpha = 0.8f))
+                Text(
+                    weekendVsWeekday,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Red.copy(alpha = 0.8f)
+                )
             }
         }
     }

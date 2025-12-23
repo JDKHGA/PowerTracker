@@ -4,6 +4,7 @@ import com.example.powertracker.SUPABASE_ANON_KEY
 import com.example.powertracker.SUPABASE_URL
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.postgrest.Postgrest
 
 val supabase = createSupabaseClient(
@@ -15,4 +16,5 @@ val supabase = createSupabaseClient(
         // It will save the session to the platform's secure storage
     }
     install(Postgrest)
+    install(Functions)
 }
