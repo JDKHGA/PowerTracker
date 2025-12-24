@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.powertracker.auth.supabase
+import com.example.powertracker.models.Meter
 import com.example.powertracker.models.Token
 import com.example.powertracker.models.UsageLog
 import io.github.jan.supabase.functions.functions
@@ -23,7 +24,10 @@ import kotlin.math.roundToInt
 import kotlin.time.ExperimentalTime
 
 @Serializable
-data class AIInsightRequest(val meterId: String)
+data class AIInsightRequest(
+    val meterId: String,
+    val balanceKwh: Double
+)
 
 @Serializable
 data class AIInsightResponse(
@@ -56,16 +60,23 @@ class InsightsScreenViewModel: ViewModel() {
         private set
 
     val recommendations = mutableStateListOf<String>()
+    
+    // Data for the 30-day trend graph
+    val trendData = mutableStateListOf<Pair<Int, Float>>()
 
     fun loadInsights(meterId: String) {
         viewModelScope.launch {
             isLoading.value = true
             try {
-                // 1. Fetch historical data (last 30 days)
+                // Fetch meter details to get the current balance
+                val meter = supabase.postgrest.from("meters")
+                    .select {
+                        filter { eq("id", meterId) }
+                    }.decodeSingle<Meter>()
+
                 val now = Clock.System.now()
                 val thirtyDaysAgo = now.minus(30, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
                 
-                // Added .limit(200) to prevent timeout and speed up loading
                 val logs = supabase.postgrest.from("usage_logs")
                     .select {
                         filter {
@@ -73,7 +84,7 @@ class InsightsScreenViewModel: ViewModel() {
                             gte("logged_at", thirtyDaysAgo.toString())
                         }
                         order("logged_at", Order.ASCENDING)
-                        limit(200) 
+                        limit(500) 
                     }.decodeList<UsageLog>()
 
                 val tokens = supabase.postgrest.from("tokens")
@@ -84,11 +95,10 @@ class InsightsScreenViewModel: ViewModel() {
                         }
                     }.decodeList<Token>()
 
-                // 2. Local Math (Immediate Results)
                 calculateLocalStats(logs, tokens)
 
-                // 3. Real AI Analysis
-                fetchAIAnalysis(meterId)
+                // Pass the actual balance to the AI for accuracy
+                fetchAIAnalysis(meterId, meter.balanceKwh)
 
             } catch (e: Exception) {
                 aiForecast.value = "Error loading insights: ${e.message}"
@@ -104,17 +114,21 @@ class InsightsScreenViewModel: ViewModel() {
             peakUsageTime.value = "N/A"
             weekendVsWeekday.value = "N/A"
             avgSpending.value = "GHS 0"
+            trendData.clear()
             return
         }
 
+        // --- Average Daily Usage ---
         val totalUsage = logs.sumOf { it.usageKwh }
         val distinctDays = logs.mapNotNull { it.loggedAt?.take(10) }.distinct().size
         val avg = if (distinctDays > 0) totalUsage / distinctDays else 0.0
         avgDailyUsage.value = "${(avg * 10).roundToInt() / 10.0} kWh"
 
+        // --- Average Spending ---
         val totalSpent = tokens.sumOf { it.amount }
         avgSpending.value = "GHS ${totalSpent.roundToInt()}"
 
+        // --- Peak Usage Time ---
         val hourGroups = logs.groupBy { 
             it.loggedAt?.let { logTime ->
                 try {
@@ -128,6 +142,7 @@ class InsightsScreenViewModel: ViewModel() {
             "$peakHour:00 - $endHour:00"
         } else "N/A"
 
+        // --- Weekend vs Weekday ---
         val weekendUsage = logs.filter { 
             try {
                 val date = Instant.parse(it.loggedAt!!).toLocalDateTime(TimeZone.currentSystemDefault())
@@ -150,17 +165,31 @@ class InsightsScreenViewModel: ViewModel() {
             else -> "Consistent"
         }
 
+        // --- Graph Data (30-Day Trend) ---
+        val dailyGroups = logs.groupBy { it.loggedAt?.take(10) }
+        val trendPoints = mutableListOf<Pair<Int, Float>>()
+        
+        // Sort keys to get chronological order
+        val sortedDays = dailyGroups.keys.filterNotNull().sorted()
+        sortedDays.forEachIndexed { index, day ->
+            val dailySum = dailyGroups[day]?.sumOf { it.usageKwh } ?: 0.0
+            trendPoints.add(Pair(index + 1, dailySum.toFloat()))
+        }
+        
+        trendData.clear()
+        trendData.addAll(trendPoints)
+
         recommendations.clear()
         if (diff > 10) {
             recommendations.add("Your weekend usage is $diff% higher than weekdays.")
         }
     }
 
-    private suspend fun fetchAIAnalysis(meterId: String) {
+    private suspend fun fetchAIAnalysis(meterId: String, balanceKwh: Double) {
         try {
             val response = supabase.functions.invoke(
                 function = "get-ai-insights",
-                body = AIInsightRequest(meterId = meterId)
+                body = AIInsightRequest(meterId = meterId, balanceKwh = balanceKwh)
             )
 
             val aiData = response.body<AIInsightResponse>()

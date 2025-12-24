@@ -3,24 +3,26 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 serve(async (req) => {
   try {
-    const { meterId } = await req.json()
+    // 1. Extract meterId and balanceKwh from the request body
+    const { meterId, balanceKwh } = await req.json()
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 1. Fetch historical data
+    // 2. Fetch last 50 usage logs
     const { data: logs } = await supabase
       .from('usage_logs')
       .select('usage_kwh, logged_at')
       .eq('meter_id', meterId)
+      .order('logged_at', { ascending: false })
       .limit(50)
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY secret is missing!")
 
-    // 2. Call Gemini
+    // 3. Call Gemini with specific instructions for a natural language forecast
     const MODEL_ID = "gemini-3-flash-preview"
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -33,15 +35,20 @@ serve(async (req) => {
             role: "user",
             parts: [
               {
-                text: `You are an energy expert analyzer. Analyze these power logs: ${JSON.stringify(logs)}.
-                Based on these logs, provide:
-                1. A descriptive forecast sentence estimating when credit will run out (e.g., "Based on your patterns, your credit is expected to last until Dec 28, 2024").
-                2. A description of the user's peak usage patterns.
-                3. Three actionable savings tips.
+                text: `You are an energy expert analyzer.
+                      Current Meter Balance: ${balanceKwh} kWh.
+                      Historical Logs (last 50 entries): ${JSON.stringify(logs)}.
 
-                Return ONLY a JSON object with this exact structure:
-                {"forecastDate": "string", "peakUsageDescription": "string", "suggestions": ["string"]}`
-              }
+                      Tasks:
+                      1. Calculate the daily burn rate based on the logs.
+                      2. Using the current balance of ${balanceKwh} kWh, predict exactly when it will hit zero.
+                      3. Write a human-like forecast sentence (e.g., "At your current rate of 2.1 kWh/day, your credit is expected to last until Friday evening, Dec 27").
+                      4. Identify peak usage hours and patterns.
+                      5. Provide 3 specific, actionable saving tips based on the logs.
+
+                      Return ONLY a raw JSON object with this exact structure:
+                      {"forecastDate": "string", "peakUsageDescription": "string", "suggestions": ["string"]}`
+                }
             ]
           }
         ],
@@ -68,6 +75,7 @@ serve(async (req) => {
     }
 
     let aiText = result.candidates[0].content.parts[0].text
+    // Strip markdown JSON blocks if AI includes them
     aiText = aiText.replace(/```json|```/g, "").trim()
 
     return new Response(aiText, { headers: { "Content-Type": "application/json" } })
