@@ -37,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.powertracker.card.insights.*
 import com.example.powertracker.cards.insightsscreen.RecommendationsCard
+import com.example.powertracker.cards.insightsscreen.TrendCard
 import com.example.powertracker.viewmodel.HomeViewModel
 import com.example.powertracker.viewmodel.InsightsScreenViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -135,7 +136,7 @@ fun InsightsScreen(navController: NavController? = null) {
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item {
-                        TrendCard()
+                        TrendCard(points = viewModel.trendData)
                     }
                     item {
                         SummaryCard(

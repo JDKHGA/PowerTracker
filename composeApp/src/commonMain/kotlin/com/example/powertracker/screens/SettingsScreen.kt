@@ -30,7 +30,7 @@ fun SettingsScreen(navController: NavController? = null) {
     Scaffold(
         topBar = {
             TopBar(
-                text = "Settings ",
+                text = "Settings",
                 onBack = {
                     navController?.popBackStack()
                 },
@@ -45,6 +45,9 @@ fun SettingsScreen(navController: NavController? = null) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item {
+                AccountCard(email = viewModel.userEmail.value)
+            }
             item {
                 NotificationCard(
                     isChecked = viewModel.notificationsEnabled.value,
@@ -83,7 +86,15 @@ fun SettingsScreen(navController: NavController? = null) {
                 )
             }
             item {
-                ActionsCard()
+                ActionsCard(
+                    onLogout = {
+                        viewModel.logout {
+                            navController?.navigate("login") {
+                                popUpTo(0)
+                            }
+                        }
+                    }
+                )
             }
         }
     }
