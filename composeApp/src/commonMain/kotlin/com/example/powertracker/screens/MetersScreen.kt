@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.powertracker.card.MeterItemCard
-import com.example.powertracker.elements.TopBar.TopBar
+import com.example.powertracker.elements.TopBar.TopBar.TopBar
 import com.example.powertracker.ui.theme.Indigo
 import com.example.powertracker.viewmodel.MeterScreenViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview

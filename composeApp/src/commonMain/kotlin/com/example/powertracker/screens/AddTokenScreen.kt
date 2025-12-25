@@ -38,13 +38,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.powertracker.elements.TopBar.TopBar
+import com.example.powertracker.elements.TopBar.TopBar.TopBar
 import com.example.powertracker.textfield.CustomTextField
 import com.example.powertracker.ui.theme.IndigoGradient
 import com.example.powertracker.viewmodel.AddTokenViewModel

@@ -1,4 +1,4 @@
-package com.example.powertracker.elements.TopBar
+package com.example.powertracker.elements.TopBar.TopBar
 
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
@@ -40,10 +40,4 @@ fun TopBar(text: String, onBack: (() -> Unit)? = null, icon: ImageVector? = null
         modifier = Modifier.statusBarsPadding(),
         scrollBehavior = null, // prevents shadow line
     )
-}
-
-@Preview
-@Composable
-fun TopBarPreview() {
-    TopBar(text = "Preview")
 }
