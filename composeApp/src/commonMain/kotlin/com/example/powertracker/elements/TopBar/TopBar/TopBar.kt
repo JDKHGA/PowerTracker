@@ -18,7 +18,7 @@ fun TopBar(text: String, onBack: (() -> Unit)? = null) {
         title = {
             Text(
                 text = text,
-                fontSize = 20.sp,   // 👈 set your preferred size here
+                fontSize = 20.sp,
                 style = MaterialTheme.typography.titleMedium,
             )
         },
