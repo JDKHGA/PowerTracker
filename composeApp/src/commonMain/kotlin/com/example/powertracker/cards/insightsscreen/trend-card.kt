@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,7 @@ import io.github.koalaplot.core.xygraph.XYGraph
 @OptIn(ExperimentalKoalaPlotApi::class)
 @Composable
 fun TrendCard(points: List<Pair<Int, Float>>) {
-    val primaryColor = Color(0xFF4CAF50)
+    val primaryColor = Blue
 
     Card(
         modifier = Modifier.fillMaxWidth(),
