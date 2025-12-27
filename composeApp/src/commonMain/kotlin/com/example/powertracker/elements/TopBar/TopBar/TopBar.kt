@@ -13,7 +13,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(text: String, onBack: (() -> Unit)? = null) {
+fun TopBar(text: String, onBack: (() -> Unit)? = null, icon: ImageVector? = null) {
     CenterAlignedTopAppBar(
         title = {
             Text(
