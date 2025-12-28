@@ -1,4 +1,4 @@
-package com.example.powertracker.card.settings
+package com.example.powertracker.cards.settingsscreen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

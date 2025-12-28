@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.powertracker.card.settings.*
+import com.example.powertracker.cards.settingsscreen.AppInfoCard
+import com.example.powertracker.cards.settingsscreen.NotificationCard
+import com.example.powertracker.cards.settingsscreen.ThemeCard
 import com.example.powertracker.elements.TopBar.TopBar.TopBar
 import com.example.powertracker.viewmodel.SettingsScreenViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
