@@ -27,7 +27,7 @@ class SettingsScreenViewModel : ViewModel() {
     // Static app information
     val appVersion = "1.0.0"
     val appBuild = "2024.12"
-    val developer = "ECG Tracker Team"
+    val developer = "JDKorp"
 
     init {
         loadUserEmail()
