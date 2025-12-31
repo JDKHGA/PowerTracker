@@ -15,12 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.powertracker.cards.settingsscreen.AccountCard
-import com.example.powertracker.cards.settingsscreen.ActionsCard
-import com.example.powertracker.cards.settingsscreen.AlertThresholdCard
-import com.example.powertracker.cards.settingsscreen.AppInfoCard
-import com.example.powertracker.cards.settingsscreen.NotificationCard
-import com.example.powertracker.cards.settingsscreen.ThemeCard
+import com.example.powertracker.cards.settingsscreen.*
 import com.example.powertracker.elements.TopBar.TopBar.TopBar
 import com.example.powertracker.viewmodel.SettingsScreenViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -55,13 +50,13 @@ fun SettingsScreen(navController: NavController? = null) {
             item {
                 NotificationCard(
                     isChecked = viewModel.notificationsEnabled.value,
-                    onCheckedChange = { viewModel.notificationsEnabled.value = it }
+                    onCheckedChange = { viewModel.toggleNotifications(it) }
                 )
             }
             item {
                 AlertThresholdCard(
                     sliderPosition = viewModel.alertThreshold.value,
-                    onSliderChange = { viewModel.alertThreshold.value = it }
+                    onSliderChange = { viewModel.updateAlertThreshold(it) }
                 )
             }
             item {
@@ -70,7 +65,7 @@ fun SettingsScreen(navController: NavController? = null) {
                     subtitle = "Use dark theme",
                     icon = Icons.Outlined.DarkMode,
                     isChecked = viewModel.darkModeEnabled.value,
-                    onCheckedChange = { viewModel.darkModeEnabled.value = it }
+                    onCheckedChange = { viewModel.toggleDarkMode(it) }
                 )
             }
             item {
@@ -79,7 +74,7 @@ fun SettingsScreen(navController: NavController? = null) {
                     subtitle = "Sync data with Google Drive",
                     icon = Icons.Outlined.CloudSync,
                     isChecked = viewModel.backupEnabled.value,
-                    onCheckedChange = { viewModel.backupEnabled.value = it }
+                    onCheckedChange = { viewModel.toggleBackup(it) }
                 )
             }
             item {
