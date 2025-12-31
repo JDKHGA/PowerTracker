@@ -12,11 +12,14 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.powertracker.ShareData
 import com.example.powertracker.cards.settingsscreen.*
 import com.example.powertracker.elements.TopBar.TopBar.TopBar
+import com.example.powertracker.elements.dialogs.ConfirmationDialog
 import com.example.powertracker.viewmodel.SettingsScreenViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -86,15 +89,50 @@ fun SettingsScreen(navController: NavController? = null) {
             }
             item {
                 ActionsCard(
-                    onLogout = {
-                        viewModel.logout {
-                            navController?.navigate("login") {
-                                popUpTo(0)
-                            }
-                        }
-                    }
+                    onLogoutRequest = { viewModel.showLogoutDialog.value = true },
+                    onClearDataRequest = { viewModel.showClearDataDialog.value = true },
+                    onExportData = { viewModel.exportData() }
                 )
             }
+        }
+
+        // --- Data Export Logic ---
+        viewModel.exportedData.value?.let { data ->
+            ShareData(data = data) {
+                viewModel.exportedData.value = null
+            }
+        }
+
+        // --- Dialogs ---
+
+        if (viewModel.showLogoutDialog.value) {
+            ConfirmationDialog(
+                title = "Confirm Logout",
+                message = "Are you sure you want to sign out of your account?",
+                confirmText = "Logout",
+                onConfirm = {
+                    viewModel.showLogoutDialog.value = false
+                    viewModel.logout {
+                        navController?.navigate("login") {
+                            popUpTo(0)
+                        }
+                    }
+                },
+                onDismiss = { viewModel.showLogoutDialog.value = false }
+            )
+        }
+
+        if (viewModel.showClearDataDialog.value) {
+            ConfirmationDialog(
+                title = "Clear All Data",
+                message = "This will permanently delete all your usage logs and token history. This action cannot be undone.",
+                confirmText = "Delete Everything",
+                confirmColor = Color.Red,
+                onConfirm = {
+                    viewModel.clearAllData()
+                },
+                onDismiss = { viewModel.showClearDataDialog.value = false }
+            )
         }
     }
 }

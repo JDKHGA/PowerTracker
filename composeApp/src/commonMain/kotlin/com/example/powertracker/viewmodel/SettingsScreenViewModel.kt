@@ -5,14 +5,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.powertracker.AppSettings
 import com.example.powertracker.auth.supabase
+import com.example.powertracker.models.Meter
+import com.example.powertracker.models.Token
+import com.example.powertracker.models.UsageLog
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class SettingsScreenViewModel : ViewModel() {
 
     private val settings: Settings = Settings()
+    private val json = Json { prettyPrint = true }
 
     // User Information
     val userEmail = mutableStateOf("Loading...")
@@ -23,6 +30,11 @@ class SettingsScreenViewModel : ViewModel() {
     
     // Linked to Global AppSettings
     val darkModeEnabled = AppSettings.isDarkMode
+
+    // Dialog States
+    val showLogoutDialog = mutableStateOf(false)
+    val showClearDataDialog = mutableStateOf(false)
+    val exportedData = mutableStateOf<String?>(null)
     
     val backupEnabled = mutableStateOf(settings.getBoolean("backup_enabled", false))
 
@@ -58,6 +70,86 @@ class SettingsScreenViewModel : ViewModel() {
     fun toggleBackup(enabled: Boolean) {
         backupEnabled.value = enabled
         settings["backup_enabled"] = enabled
+    }
+
+    fun clearAllData() {
+        viewModelScope.launch {
+            try {
+                val user = supabase.auth.currentUserOrNull()
+                if (user != null) {
+                    // 1. Get all meters for the user to delete their related data
+                    val meters = supabase.postgrest.from("meters")
+                        .select { filter { eq("user_id", user.id) } }
+                        .decodeList<Meter>()
+                    
+                    val meterIds = meters.mapNotNull { it.id }
+                    
+                    if (meterIds.isNotEmpty()) {
+                        // 2. Delete tokens related to these meters
+                        supabase.postgrest.from("tokens").delete {
+                            filter {
+                                isIn("meter_id", meterIds)
+                            }
+                        }
+                        
+                        // 3. Delete usage logs related to these meters
+                        supabase.postgrest.from("usage_logs").delete {
+                            filter {
+                                isIn("meter_id", meterIds)
+                            }
+                        }
+                        
+                        // 4. Delete the meters themselves
+                        supabase.postgrest.from("meters").delete {
+                            filter {
+                                eq("user_id", user.id)
+                            }
+                        }
+                    }
+                    
+                    showClearDataDialog.value = false
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun exportData() {
+        viewModelScope.launch {
+            try {
+                val user = supabase.auth.currentUserOrNull()
+                if (user != null) {
+                    val meters = supabase.postgrest.from("meters")
+                        .select { filter { eq("user_id", user.id) } }
+                        .decodeList<Meter>()
+                    
+                    val meterIds = meters.mapNotNull { it.id }
+                    
+                    val tokens = if (meterIds.isNotEmpty()) {
+                        supabase.postgrest.from("tokens")
+                            .select { filter { isIn("meter_id", meterIds) } }
+                            .decodeList<Token>()
+                    } else emptyList()
+                    
+                    val usageLogs = if (meterIds.isNotEmpty()) {
+                        supabase.postgrest.from("usage_logs")
+                            .select { filter { isIn("meter_id", meterIds) } }
+                            .decodeList<UsageLog>()
+                    } else emptyList()
+                    
+                    val exportMap = mapOf(
+                        "meters" to meters,
+                        "tokens" to tokens,
+                        "usage_logs" to usageLogs
+                    )
+                    
+                    exportedData.value = json.encodeToString(exportMap)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun logout(onLogoutSuccess: () -> Unit) {
