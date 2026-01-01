@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.sp
 fun ActionsCard(
     onLogoutRequest: () -> Unit,
     onClearDataRequest: () -> Unit,
-    onExportData: () -> Unit
+    onExportData: () -> Unit,
+    onPrivacyPolicyRequest: () -> Unit,
+    onTermsOfServiceRequest: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -30,13 +32,13 @@ fun ActionsCard(
                 thickness = 0.5.dp,
                 color = Color.LightGray
             )
-            ActionItem("Privacy Policy") { /* TODO */ }
+            ActionItem("Privacy Policy") { onPrivacyPolicyRequest() }
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 thickness = 0.5.dp,
                 color = Color.LightGray
             )
-            ActionItem("Terms of Service") { /* TODO */ }
+            ActionItem("Terms of Service") { onTermsOfServiceRequest() }
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 thickness = 0.5.dp,
