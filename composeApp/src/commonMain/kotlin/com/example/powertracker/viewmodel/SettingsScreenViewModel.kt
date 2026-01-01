@@ -68,21 +68,19 @@ class SettingsScreenViewModel : ViewModel() {
                     alertThreshold.value = userSettings.alertThreshold
                     backupEnabled.value = userSettings.backupEnabled
                     
-                    // Update local settings too
                     settings["notifications_enabled"] = userSettings.notificationsEnabled
                     settings["alert_threshold"] = userSettings.alertThreshold
                     settings["backup_enabled"] = userSettings.backupEnabled
                 } else {
-                    // Initialize Supabase with local settings if they don't exist there
                     saveSettingsToSupabase()
                 }
             } catch (e: Exception) {
-                // Silently fail or log, as this might be offline
+                e.printStackTrace()
             }
         }
     }
 
-    private fun saveSettingsToSupabase() {
+    fun saveSettingsToSupabase() {
         viewModelScope.launch {
             try {
                 val user = supabase.auth.currentUserOrNull() ?: return@launch
@@ -94,7 +92,7 @@ class SettingsScreenViewModel : ViewModel() {
                 )
                 supabase.postgrest.from("user_settings").upsert(userSettings)
             } catch (e: Exception) {
-                // Handle error
+                e.printStackTrace()
             }
         }
     }

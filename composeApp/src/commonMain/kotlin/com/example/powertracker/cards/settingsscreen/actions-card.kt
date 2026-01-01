@@ -18,7 +18,8 @@ fun ActionsCard(
     onClearDataRequest: () -> Unit,
     onExportData: () -> Unit,
     onPrivacyPolicyRequest: () -> Unit,
-    onTermsOfServiceRequest: () -> Unit
+    onTermsOfServiceRequest: () -> Unit,
+    onTestNotification: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -26,6 +27,12 @@ fun ActionsCard(
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column {
+            ActionItem("Send Test Notification", color = Color(0xFF4CAF50)) { onTestNotification() }
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                thickness = 0.5.dp,
+                color = Color.LightGray
+            )
             ActionItem("Export Data") { onExportData() }
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),

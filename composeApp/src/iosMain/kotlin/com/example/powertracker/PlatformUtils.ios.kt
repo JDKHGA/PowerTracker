@@ -17,6 +17,10 @@ import platform.UserNotifications.UNTimeIntervalNotificationTrigger
 import platform.UserNotifications.UNAuthorizationOptionAlert
 import platform.UserNotifications.UNAuthorizationOptionSound
 import platform.UserNotifications.UNAuthorizationOptionBadge
+import platform.UserNotifications.UNNotificationPresentationOptionAlert
+import platform.UserNotifications.UNNotificationPresentationOptionSound
+import platform.UserNotifications.UNUserNotificationCenterDelegateProtocol
+import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -27,12 +31,10 @@ actual fun ShareData(data: String, onFinished: () -> Unit) {
             val viewController = window?.rootViewController
             
             if (viewController != null) {
-                // Create a temporary file URL
                 val tempDir = NSTemporaryDirectory()
                 val fileName = "powertracker_data.csv"
                 val fileURL = NSURL.fileURLWithPath(tempDir + fileName)
                 
-                // Write the CSV data to the file
                 (data as platform.Foundation.NSString).writeToURL(
                     url = fileURL,
                     atomically = true,
@@ -64,16 +66,21 @@ actual fun ShareData(data: String, onFinished: () -> Unit) {
 
 actual fun getPlatformName(): String = "iOS"
 
-class IosNotificationService : NotificationService {
+class IosNotificationService : NSObject(), NotificationService, UNUserNotificationCenterDelegateProtocol {
+    
+    init {
+        UNUserNotificationCenter.currentNotificationCenter().delegate = this
+    }
+
     override fun showNotification(title: String, message: String) {
         val content = UNMutableNotificationContent().apply {
             setTitle(title)
             setBody(message)
-            setSound(null) // Can be customized
+            setSound(null)
         }
 
         val trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeInterval(1.0, false)
-        val request = UNNotificationRequest.requestWithIdentifier("low_balance_alert", content, trigger)
+        val request = UNNotificationRequest.requestWithIdentifier("test_alert", content, trigger)
 
         UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { error ->
             if (error != null) {
@@ -88,6 +95,14 @@ class IosNotificationService : NotificationService {
         center.requestAuthorizationWithOptions(options) { granted, error ->
             onGranted(granted)
         }
+    }
+
+    override fun userNotificationCenter(
+        center: UNUserNotificationCenter,
+        willPresentNotification: platform.UserNotifications.UNNotification,
+        withCompletionHandler: (platform.UserNotifications.UNNotificationPresentationOptions) -> Unit
+    ) {
+        withCompletionHandler(UNNotificationPresentationOptionAlert or UNNotificationPresentationOptionSound)
     }
 }
 
