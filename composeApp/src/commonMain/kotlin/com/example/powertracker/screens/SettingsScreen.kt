@@ -25,6 +25,7 @@ import com.example.powertracker.ShareData
 import com.example.powertracker.cards.settingsscreen.*
 import com.example.powertracker.elements.TopBar.TopBar.TopBar
 import com.example.powertracker.elements.dialogs.ConfirmationDialog
+import com.example.powertracker.getNotificationService
 import com.example.powertracker.viewmodel.SettingsScreenViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -34,6 +35,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun SettingsScreen(navController: NavController? = null) {
     val viewModel: SettingsScreenViewModel = viewModel { SettingsScreenViewModel() }
     val snackbarHostState = remember { SnackbarHostState() }
+    val notificationService = getNotificationService()
 
     LaunchedEffect(viewModel.errorMessage.value) {
         viewModel.errorMessage.value?.let {
@@ -68,7 +70,19 @@ fun SettingsScreen(navController: NavController? = null) {
                 item {
                     NotificationCard(
                         isChecked = viewModel.notificationsEnabled.value,
-                        onCheckedChange = { viewModel.toggleNotifications(it) }
+                        onCheckedChange = { enabled ->
+                            if (enabled) {
+                                notificationService.requestPermission { granted ->
+                                    if (granted) {
+                                        viewModel.toggleNotifications(true)
+                                    } else {
+                                        viewModel.errorMessage.value = "Notification permission denied"
+                                    }
+                                }
+                            } else {
+                                viewModel.toggleNotifications(false)
+                            }
+                        }
                     )
                 }
                 item {
@@ -89,7 +103,7 @@ fun SettingsScreen(navController: NavController? = null) {
                 item {
                     ThemeCard(
                         title = "Backup & Sync",
-                        subtitle = "Sync data with Google Drive",
+                        subtitle = "Sync data with Supabase Cloud",
                         icon = Icons.Outlined.CloudSync,
                         isChecked = viewModel.backupEnabled.value,
                         onCheckedChange = { viewModel.toggleBackup(it) }
@@ -221,7 +235,7 @@ private val privacyPolicyText = """
 """.trimIndent()
 
 private val termsOfServiceText = """
-    Last Updated: January 2026
+    Last Updated: January 2025
     
     1. Use of Service
     PowerTracker is provided "as is" for monitoring electricity usage.

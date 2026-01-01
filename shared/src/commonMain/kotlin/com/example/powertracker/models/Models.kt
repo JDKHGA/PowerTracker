@@ -14,6 +14,31 @@ data class Profile(
 )
 
 @Serializable
+data class UserSettings(
+    @SerialName("user_id")
+    val userId: String,
+    @SerialName("notifications_enabled")
+    val notificationsEnabled: Boolean = false,
+    @SerialName("alert_threshold")
+    val alertThreshold: Float = 10f,
+    @SerialName("backup_enabled")
+    val backupEnabled: Boolean = false,
+    @SerialName("updated_at")
+    val updatedAt: String? = null
+)
+
+@Serializable
+data class DeviceToken(
+    @SerialName("user_id")
+    val userId: String,
+    @SerialName("fcm_token")
+    val fcmToken: String,
+    val platform: String,
+    @SerialName("created_at")
+    val createdAt: String? = null
+)
+
+@Serializable
 data class Meter(
     val id: String? = null,
     @SerialName("user_id")

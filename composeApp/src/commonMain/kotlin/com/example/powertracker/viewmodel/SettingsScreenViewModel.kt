@@ -8,6 +8,7 @@ import com.example.powertracker.auth.supabase
 import com.example.powertracker.models.Meter
 import com.example.powertracker.models.Token
 import com.example.powertracker.models.UsageLog
+import com.example.powertracker.models.UserSettings
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
 import io.github.jan.supabase.auth.auth
@@ -24,6 +25,7 @@ class SettingsScreenViewModel : ViewModel() {
     // Persistent States
     val notificationsEnabled = mutableStateOf(settings.getBoolean("notifications_enabled", false))
     val alertThreshold = mutableStateOf(settings.getFloat("alert_threshold", 10f))
+    val backupEnabled = mutableStateOf(settings.getBoolean("backup_enabled", false))
     
     // Linked to Global AppSettings
     val darkModeEnabled = AppSettings.isDarkMode
@@ -37,8 +39,6 @@ class SettingsScreenViewModel : ViewModel() {
     val exportedData = mutableStateOf<String?>(null)
     val isExporting = mutableStateOf(false)
     val errorMessage = mutableStateOf<String?>(null)
-    
-    val backupEnabled = mutableStateOf(settings.getBoolean("backup_enabled", false))
 
     // Static app information
     val appVersion = "1.0.0"
@@ -47,6 +47,7 @@ class SettingsScreenViewModel : ViewModel() {
 
     init {
         loadUserEmail()
+        syncWithSupabase()
     }
 
     private fun loadUserEmail() {
@@ -54,14 +55,60 @@ class SettingsScreenViewModel : ViewModel() {
         userEmail.value = user?.email ?: "Not logged in"
     }
 
+    private fun syncWithSupabase() {
+        viewModelScope.launch {
+            try {
+                val user = supabase.auth.currentUserOrNull() ?: return@launch
+                val userSettings = supabase.postgrest.from("user_settings")
+                    .select { filter { eq("user_id", user.id) } }
+                    .decodeSingleOrNull<UserSettings>()
+
+                if (userSettings != null) {
+                    notificationsEnabled.value = userSettings.notificationsEnabled
+                    alertThreshold.value = userSettings.alertThreshold
+                    backupEnabled.value = userSettings.backupEnabled
+                    
+                    // Update local settings too
+                    settings["notifications_enabled"] = userSettings.notificationsEnabled
+                    settings["alert_threshold"] = userSettings.alertThreshold
+                    settings["backup_enabled"] = userSettings.backupEnabled
+                } else {
+                    // Initialize Supabase with local settings if they don't exist there
+                    saveSettingsToSupabase()
+                }
+            } catch (e: Exception) {
+                // Silently fail or log, as this might be offline
+            }
+        }
+    }
+
+    private fun saveSettingsToSupabase() {
+        viewModelScope.launch {
+            try {
+                val user = supabase.auth.currentUserOrNull() ?: return@launch
+                val userSettings = UserSettings(
+                    userId = user.id,
+                    notificationsEnabled = notificationsEnabled.value,
+                    alertThreshold = alertThreshold.value,
+                    backupEnabled = backupEnabled.value
+                )
+                supabase.postgrest.from("user_settings").upsert(userSettings)
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
     fun toggleNotifications(enabled: Boolean) {
         notificationsEnabled.value = enabled
         settings["notifications_enabled"] = enabled
+        saveSettingsToSupabase()
     }
 
     fun updateAlertThreshold(value: Float) {
         alertThreshold.value = value
         settings["alert_threshold"] = value
+        saveSettingsToSupabase()
     }
 
     fun toggleDarkMode(enabled: Boolean) {
@@ -71,6 +118,7 @@ class SettingsScreenViewModel : ViewModel() {
     fun toggleBackup(enabled: Boolean) {
         backupEnabled.value = enabled
         settings["backup_enabled"] = enabled
+        saveSettingsToSupabase()
     }
 
     fun clearAllData() {
@@ -99,7 +147,6 @@ class SettingsScreenViewModel : ViewModel() {
 
     private fun formatIsoDate(isoDate: String?): String {
         if (isoDate == null) return ""
-        // Formats "2025-12-22T11:33:49.053Z" -> "2025-12-22 11:33"
         return isoDate.substringBefore(".").replace("T", " ")
     }
 
@@ -131,7 +178,6 @@ class SettingsScreenViewModel : ViewModel() {
                             .decodeList<UsageLog>()
                     } else emptyList()
                     
-                    // Create a list of all activities
                     val activities = mutableListOf<ExportRow>()
                     
                     tokens.forEach {
@@ -156,10 +202,8 @@ class SettingsScreenViewModel : ViewModel() {
                         ))
                     }
                     
-                    // Sort by date descending
                     val sortedActivities = activities.sortedByDescending { it.date }
                     
-                    // Build CSV
                     val csvResult = buildString {
                         append("Meter,Date,Activity,Value,Units,Details\n")
                         sortedActivities.forEach {

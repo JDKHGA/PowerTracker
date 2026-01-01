@@ -10,6 +10,13 @@ import platform.Foundation.NSUTF8StringEncoding
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
 import platform.UIKit.popoverPresentationController
+import platform.UserNotifications.UNUserNotificationCenter
+import platform.UserNotifications.UNNotificationRequest
+import platform.UserNotifications.UNMutableNotificationContent
+import platform.UserNotifications.UNTimeIntervalNotificationTrigger
+import platform.UserNotifications.UNAuthorizationOptionAlert
+import platform.UserNotifications.UNAuthorizationOptionSound
+import platform.UserNotifications.UNAuthorizationOptionBadge
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -54,3 +61,37 @@ actual fun ShareData(data: String, onFinished: () -> Unit) {
         }
     }
 }
+
+actual fun getPlatformName(): String = "iOS"
+
+class IosNotificationService : NotificationService {
+    override fun showNotification(title: String, message: String) {
+        val content = UNMutableNotificationContent().apply {
+            setTitle(title)
+            setBody(message)
+            setSound(null) // Can be customized
+        }
+
+        val trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeInterval(1.0, false)
+        val request = UNNotificationRequest.requestWithIdentifier("low_balance_alert", content, trigger)
+
+        UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { error ->
+            if (error != null) {
+                println("Error showing notification: ${error.localizedDescription}")
+            }
+        }
+    }
+
+    override fun requestPermission(onGranted: (Boolean) -> Unit) {
+        val center = UNUserNotificationCenter.currentNotificationCenter()
+        val options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge
+        center.requestAuthorizationWithOptions(options) { granted, error ->
+            onGranted(granted)
+        }
+    }
+}
+
+private val notificationService = IosNotificationService()
+
+@Composable
+actual fun getNotificationService(): NotificationService = notificationService
