@@ -10,6 +10,7 @@ expect fun getPlatformName(): String
 interface NotificationService {
     fun showNotification(title: String, message: String)
     fun requestPermission(onGranted: (Boolean) -> Unit)
+    fun getPushToken(onTokenReceived: (String) -> Unit)
 }
 
 @Composable

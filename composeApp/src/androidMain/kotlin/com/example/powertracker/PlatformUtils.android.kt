@@ -113,8 +113,6 @@ class AndroidNotificationService(private val context: Context) : NotificationSer
                         arrayOf(Manifest.permission.POST_NOTIFICATIONS),
                         101
                     )
-                    // We callback immediately to allow the switch to move, 
-                    // but the actual permission will be decided by the user in the system dialog.
                     onGranted(true)
                 }
             } else {
@@ -124,6 +122,11 @@ class AndroidNotificationService(private val context: Context) : NotificationSer
         } else {
             onGranted(true)
         }
+    }
+
+    override fun getPushToken(onTokenReceived: (String) -> Unit) {
+        // Mock token for Android demonstration
+        onTokenReceived("android_mock_token_${System.currentTimeMillis()}")
     }
 
     private fun Context.findActivity(): Activity? {
@@ -142,7 +145,6 @@ private var notificationService: NotificationService? = null
 actual fun getNotificationService(): NotificationService {
     val context = LocalContext.current
     if (notificationService == null) {
-        // We pass the context directly (which is the Activity) instead of applicationContext
         notificationService = AndroidNotificationService(context)
     }
     return notificationService!!

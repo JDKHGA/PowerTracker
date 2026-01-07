@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.powertracker.AppSettings
 import com.example.powertracker.auth.supabase
+import com.example.powertracker.getPlatformName
+import com.example.powertracker.models.DeviceToken
 import com.example.powertracker.models.Meter
 import com.example.powertracker.models.Token
 import com.example.powertracker.models.UsageLog
@@ -29,6 +31,7 @@ class SettingsScreenViewModel : ViewModel() {
     
     // Linked to Global AppSettings
     val darkModeEnabled = AppSettings.isDarkMode
+    val lastSyncTime = AppSettings.lastSyncTime
 
     // Dialog & UI States
     val showLogoutDialog = mutableStateOf(false)
@@ -71,6 +74,8 @@ class SettingsScreenViewModel : ViewModel() {
                     settings["notifications_enabled"] = userSettings.notificationsEnabled
                     settings["alert_threshold"] = userSettings.alertThreshold
                     settings["backup_enabled"] = userSettings.backupEnabled
+                    
+                    AppSettings.updateSyncTime()
                 } else {
                     saveSettingsToSupabase()
                 }
@@ -91,6 +96,23 @@ class SettingsScreenViewModel : ViewModel() {
                     backupEnabled = backupEnabled.value
                 )
                 supabase.postgrest.from("user_settings").upsert(userSettings)
+                AppSettings.updateSyncTime()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateDeviceToken(token: String) {
+        viewModelScope.launch {
+            try {
+                val user = supabase.auth.currentUserOrNull() ?: return@launch
+                val deviceToken = DeviceToken(
+                    userId = user.id,
+                    fcmToken = token,
+                    platform = getPlatformName()
+                )
+                supabase.postgrest.from("device_tokens").upsert(deviceToken)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

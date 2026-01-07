@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.powertracker.AppSettings
 import com.example.powertracker.ShareData
 import com.example.powertracker.cards.settingsscreen.*
 import com.example.powertracker.elements.TopBar.TopBar.TopBar
@@ -56,11 +57,10 @@ fun SettingsScreen(navController: NavController? = null) {
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                    .fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -75,6 +75,9 @@ fun SettingsScreen(navController: NavController? = null) {
                                 notificationService.requestPermission { granted ->
                                     if (granted) {
                                         viewModel.toggleNotifications(true)
+                                        notificationService.getPushToken { token ->
+                                            viewModel.updateDeviceToken(token)
+                                        }
                                     } else {
                                         viewModel.errorMessage.value = "Notification permission denied"
                                     }
@@ -103,7 +106,7 @@ fun SettingsScreen(navController: NavController? = null) {
                 item {
                     ThemeCard(
                         title = "Backup & Sync",
-                        subtitle = "Sync data with Supabase Cloud",
+                        subtitle = viewModel.lastSyncTime.value?.let { "Last synced: $it" } ?: "Sync data with Supabase Cloud",
                         icon = Icons.Outlined.CloudSync,
                         isChecked = viewModel.backupEnabled.value,
                         onCheckedChange = { viewModel.toggleBackup(it) }

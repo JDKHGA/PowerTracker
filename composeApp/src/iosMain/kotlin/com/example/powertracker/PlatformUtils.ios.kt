@@ -3,8 +3,10 @@ package com.example.powertracker
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.cinterop.ExperimentalForeignApi
+import platform.Foundation.NSDate
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
+import platform.Foundation.timeIntervalSince1970
 import platform.Foundation.writeToURL
 import platform.Foundation.NSUTF8StringEncoding
 import platform.UIKit.UIActivityViewController
@@ -95,6 +97,12 @@ class IosNotificationService : NSObject(), NotificationService, UNUserNotificati
         center.requestAuthorizationWithOptions(options) { granted, error ->
             onGranted(granted)
         }
+    }
+
+    override fun getPushToken(onTokenReceived: (String) -> Unit) {
+        // Mock token for iOS demonstration
+        val timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
+        onTokenReceived("ios_mock_token_$timestamp")
     }
 
     override fun userNotificationCenter(

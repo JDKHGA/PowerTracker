@@ -9,3 +9,11 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.ktor) apply false
 }
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // KMPNotifier is hosted on MavenCentral, no need for custom repository
+    }
+}

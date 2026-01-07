@@ -1,19 +1,26 @@
 package com.example.powertracker.screens
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.ElectricMeter
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -21,7 +28,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.powertracker.card.MeterItemCard
@@ -67,9 +78,7 @@ fun MetersScreen(navController: NavController? = null) {
                 .padding(paddingValues)
         ) {
             if (viewModel.meters.isEmpty() && !viewModel.isLoading.value) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = viewModel.error.value ?: "No meters found. Add one!")
-                }
+                EmptyMetersState(onAddClick = { navController?.navigate("addMeter") })
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -87,6 +96,49 @@ fun MetersScreen(navController: NavController? = null) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyMetersState(onAddClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.ElectricMeter,
+            contentDescription = null,
+            modifier = Modifier.size(100.dp),
+            tint = Indigo.copy(alpha = 0.5f)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "No Meters Found",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = Color.DarkGray
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Welcome to PowerTracker! Add your first meter to start tracking your energy consumption and credit history.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            onClick = onAddClick,
+            colors = ButtonDefaults.buttonColors(containerColor = Indigo),
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(Modifier.size(8.dp))
+            Text("Add Your First Meter")
         }
     }
 }

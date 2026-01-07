@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.googleServices)
 }
 
 kotlin {
@@ -32,6 +33,9 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
+            
+            // Firebase for Android
+            implementation(libs.firebase.messaging)
         }
         
         iosMain.dependencies {
@@ -53,11 +57,21 @@ kotlin {
             
             implementation(libs.supabase.auth)
             implementation(libs.supabase.postgrest)
+            implementation(libs.supabase.functions)
             
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.contentNegotiation)
             implementation(libs.ktor.serializationJson)
             implementation(libs.kotlinx.datetime)
+
+            // Koala Plot
+            implementation(libs.koalaplot.core)
+
+            // Settings Persistence
+            implementation(libs.multiplatformSettings.noArgs)
+
+            // KMP Notifier
+            implementation(libs.kmp.notifier)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -94,4 +108,5 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+    implementation(platform(libs.firebase.bom))
 }
