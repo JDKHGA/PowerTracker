@@ -10,6 +10,7 @@ plugins {
 
 abstract class GenerateConfigTask : org.gradle.api.DefaultTask() {
 
+    @get:org.gradle.api.tasks.Optional
     @get:org.gradle.api.tasks.InputFile
     abstract val localProperties: org.gradle.api.file.RegularFileProperty
 
@@ -18,9 +19,11 @@ abstract class GenerateConfigTask : org.gradle.api.DefaultTask() {
 
     @org.gradle.api.tasks.TaskAction
     fun generate() {
-        val props = Properties().apply {
-            load(localProperties.asFile.get().inputStream())
+        val props = Properties()
+        if (localProperties.asFile.get().exists()) {
+            props.load(localProperties.asFile.get().inputStream())
         }
+
         val supabaseUrl = System.getenv("SUPABASE_URL")
             ?: props.getProperty("supabase.url")
             ?: project.findProperty("SUPABASE_URL")?.toString()
