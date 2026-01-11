@@ -1,3 +1,5 @@
+import java.util.Properties
+import java.io.FileInputStream
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -6,34 +8,46 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
-// Task to generate configuration from Env Vars (CI) or local properties (Dev)
-val generateConfig = tasks.register("generateConfig") {
-    // Check Env Vars first (standard for CI), then gradle properties
-    val supabaseUrl = System.getenv("SUPABASE_URL") 
-        ?: project.findProperty("SUPABASE_URL")?.toString() 
-        ?: ""
-    val supabaseKey = System.getenv("SUPABASE_ANON_KEY") 
-        ?: project.findProperty("SUPABASE_ANON_KEY")?.toString() 
-        ?: ""
-        
-    val outputDir = layout.buildDirectory.dir("generated/powertracker/commonMain/kotlin")
-    
-    inputs.property("url", supabaseUrl)
-    inputs.property("key", supabaseKey)
-    outputs.dir(outputDir)
-    
-    doLast {
+abstract class GenerateConfigTask : org.gradle.api.DefaultTask() {
+
+    @get:org.gradle.api.tasks.InputFile
+    abstract val localProperties: org.gradle.api.file.RegularFileProperty
+
+    @get:org.gradle.api.tasks.OutputDirectory
+    abstract val outputDir: org.gradle.api.file.DirectoryProperty
+
+    @org.gradle.api.tasks.TaskAction
+    fun generate() {
+        val props = Properties().apply {
+            load(localProperties.asFile.get().inputStream())
+        }
+        val supabaseUrl = System.getenv("SUPABASE_URL")
+            ?: props.getProperty("supabase.url")
+            ?: project.findProperty("SUPABASE_URL")?.toString()
+            ?: ""
+        val supabaseKey = System.getenv("SUPABASE_ANON_KEY")
+            ?: props.getProperty("supabase.key")
+            ?: project.findProperty("SUPABASE_ANON_KEY")?.toString()
+            ?: ""
+
         val configFile = outputDir.get().file("com/example/powertracker/SupabaseConfig.kt").asFile
         configFile.parentFile.mkdirs()
         configFile.writeText("""
             package com.example.powertracker
-            
+
             object SupabaseConfig {
                 const val URL = "$supabaseUrl"
                 const val KEY = "$supabaseKey"
             }
         """.trimIndent())
     }
+}
+
+
+// Task to generate configuration from Env Vars (CI) or local properties (Dev)
+val generateConfig = tasks.register<GenerateConfigTask>("generateConfig") {
+    localProperties.set(rootProject.file("local.properties"))
+    outputDir.set(layout.buildDirectory.dir("generated/powertracker/commonMain/kotlin"))
 }
 
 kotlin {

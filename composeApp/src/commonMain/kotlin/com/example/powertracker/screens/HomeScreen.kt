@@ -1,7 +1,10 @@
 package com.example.powertracker.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -11,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -31,11 +33,10 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun HomeScreen(navController: NavController? = null) {
 
-    // Create ViewModel (simple version, no DI yet)
     val viewModel: HomeViewModel = viewModel { HomeViewModel() }
+    var showMeterDropdown by remember { mutableStateOf(false) }
 
     Scaffold(
-        // Set the background color of the main content area to white
         containerColor = Color.White,
         topBar = {
             TopAppBar(
@@ -45,7 +46,6 @@ fun HomeScreen(navController: NavController? = null) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // 1. Styled App Title
                         Text(
                             buildAnnotatedString {
                                 withStyle(
@@ -62,45 +62,40 @@ fun HomeScreen(navController: NavController? = null) {
                             }
                         )
 
-                        Box(modifier = Modifier.width(150.dp)) {
-                            // 2. ExposedDropdownMenuBox for the meter selection
-                            ExposedDropdownMenuBox(
-                                expanded = viewModel.meterDropdownExpanded.value,
-                                onExpandedChange = { viewModel.meterDropdownExpanded.value = it }
+                        // Meter Selection Dropdown
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .width(150.dp)
+                                    .height(56.dp)
+                                    .background(Color.LightGray.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                                    .clickable { if (!viewModel.isLoading.value) showMeterDropdown = true }
+                                    .padding(horizontal = 16.dp),
+                                contentAlignment = Alignment.CenterStart
                             ) {
-                                // This is the visible part of the dropdown menu
-                                TextField(
-                                    value = viewModel.selectedMeter.value?.name ?: "Select Meter",
-                                    onValueChange = {},
-                                    readOnly = true,
-                                    textStyle = TextStyle(fontSize = 14.sp), // Reduce font size
-                                    trailingIcon = {
-                                        Icon(
-                                            Icons.Default.ArrowDropDown,
-                                            contentDescription = "Dropdown"
-                                        )
-                                    },
-                                    colors = TextFieldDefaults.colors(
-                                        focusedContainerColor = Color.Transparent,
-                                        unfocusedContainerColor = Color.Transparent,
-                                        focusedIndicatorColor = Color.Transparent,
-                                        unfocusedIndicatorColor = Color.Transparent
-                                    ),
-                                    modifier = Modifier.menuAnchor()
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = viewModel.selectedMeter.value?.name ?: "Select a meter",
+                                        color = if (viewModel.selectedMeter.value == null) Color.Gray else Color.Black
+                                    )
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                                }
 
-                                // This is the dropdown menu that appears
-                                ExposedDropdownMenu(
-                                    expanded = viewModel.meterDropdownExpanded.value,
-                                    onDismissRequest = {
-                                        viewModel.meterDropdownExpanded.value = false
-                                    }
+                                DropdownMenu(
+                                    expanded = showMeterDropdown,
+                                    onDismissRequest = { showMeterDropdown = false },
+                                    modifier = Modifier.fillMaxWidth(0.9f)
                                 ) {
                                     viewModel.meters.forEach { meter ->
                                         DropdownMenuItem(
                                             text = { Text(meter.name) },
                                             onClick = {
                                                 viewModel.selectMeter(meter)
+                                                showMeterDropdown = false
                                             }
                                         )
                                     }
@@ -109,7 +104,6 @@ fun HomeScreen(navController: NavController? = null) {
                         }
                     }
                 },
-                // Set the TopAppBar background to white
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
@@ -124,7 +118,6 @@ fun HomeScreen(navController: NavController? = null) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ---------------- Balance Card ----------------
             BalanceCard(
                 balanceKwh = viewModel.balanceKwh.value,
                 balanceGhs = viewModel.balanceGhs.value,
@@ -133,7 +126,6 @@ fun HomeScreen(navController: NavController? = null) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ---------------- Usage Card ----------------
             UsageCard(
                 usage = viewModel.usage.value,
                 points = viewModel.dailyUsagePoints
@@ -141,14 +133,12 @@ fun HomeScreen(navController: NavController? = null) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ---------------- Prediction Card ----------------
             PredictionCard(
                 prediction = viewModel.prediction.value
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ---------------- Quick Actions ----------------
             QuickActionsRow(navController)
         }
     }

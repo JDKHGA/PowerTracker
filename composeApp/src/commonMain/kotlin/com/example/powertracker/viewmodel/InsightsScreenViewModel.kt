@@ -1,4 +1,5 @@
 package com.example.powertracker.viewmodel
+import com.example.powertracker.getCurrentEpochMillis
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -12,6 +13,10 @@ import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import io.ktor.client.call.body
+import io.ktor.client.plugins.timeout
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
@@ -64,6 +69,7 @@ class InsightsScreenViewModel: ViewModel() {
     // Data for the 30-day trend graph
     val trendData = mutableStateListOf<Pair<Int, Float>>()
 
+    @OptIn(ExperimentalTime::class)
     fun loadInsights(meterId: String) {
         viewModelScope.launch {
             isLoading.value = true
@@ -74,7 +80,7 @@ class InsightsScreenViewModel: ViewModel() {
                         filter { eq("id", meterId) }
                     }.decodeSingle<Meter>()
 
-                val now = Clock.System.now()
+                val now = Instant.fromEpochMilliseconds(getCurrentEpochMillis())
                 val thirtyDaysAgo = now.minus(30, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
                 
                 val logs = supabase.postgrest.from("usage_logs")
@@ -188,9 +194,14 @@ class InsightsScreenViewModel: ViewModel() {
     private suspend fun fetchAIAnalysis(meterId: String, balanceKwh: Double) {
         try {
             val response = supabase.functions.invoke(
-                function = "get-ai-insights",
-                body = AIInsightRequest(meterId = meterId, balanceKwh = balanceKwh)
-            )
+                "get-ai-insights"
+            ) {
+                contentType(ContentType.Application.Json)
+                timeout {
+                    requestTimeoutMillis = 30000L
+                }
+                setBody(AIInsightRequest(meterId = meterId, balanceKwh = balanceKwh))
+            }
 
             val aiData = response.body<AIInsightResponse>()
             aiForecast.value = aiData.forecastDate

@@ -1,4 +1,5 @@
 package com.example.powertracker.viewmodel
+import com.example.powertracker.getCurrentEpochMillis
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +21,7 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.round
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 
@@ -126,11 +128,11 @@ class HomeViewModel : ViewModel() {
                         limit(1)
                     }.decodeSingleOrNull<UsageLog>()
 
-                val now = Clock.System.now()
-                val lastLogTime = lastLog?.loggedAt?.let { Instant.parse(it) } ?: (now - 1.hours)
+                val now = Instant.fromEpochMilliseconds(getCurrentEpochMillis())
+                val lastLogTime = lastLog?.loggedAt?.let { Instant.parse(it) } ?: (now.minus(1, DateTimeUnit.HOUR, TimeZone.currentSystemDefault()))
 
-                val duration = now - lastLogTime
-                val hoursPassed = duration.inWholeMilliseconds.toDouble() / 3600000.0
+                val duration = now.toEpochMilliseconds() - lastLogTime.toEpochMilliseconds()
+                val hoursPassed = duration.toDouble() / 3600000.0
                 
                 val cappedHours = if (lastLog == null) 1.0 else hoursPassed
 
@@ -186,7 +188,7 @@ class HomeViewModel : ViewModel() {
     private fun loadHistoricalLogs(meter: Meter) {
         viewModelScope.launch {
             try {
-                val now = Clock.System.now()
+                val now = Instant.fromEpochMilliseconds(getCurrentEpochMillis())
                 val sevenDaysAgo = now.minus(7, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
                 
                 val logs = supabase.postgrest.from("usage_logs")
@@ -222,7 +224,7 @@ class HomeViewModel : ViewModel() {
         val remainingDays = (meter.balanceKwh / dailyBurnRate).roundToInt()
         daysLeft.value = "$remainingDays days"
         
-        val now = Clock.System.now()
+        val now = Instant.fromEpochMilliseconds(getCurrentEpochMillis())
         val depletionDate = now.plus(remainingDays, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
         val dateString = depletionDate.toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
         
@@ -248,7 +250,7 @@ class HomeViewModel : ViewModel() {
     private fun loadTodayUsage(meterId: String) {
         viewModelScope.launch {
             try {
-                val nowTime = Clock.System.now()
+                val nowTime = Instant.fromEpochMilliseconds(getCurrentEpochMillis())
                 val now = nowTime.toLocalDateTime(TimeZone.currentSystemDefault())
                 val todayStart = "${now.date}T00:00:00Z"
 
