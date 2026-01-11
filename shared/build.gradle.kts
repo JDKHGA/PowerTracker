@@ -17,7 +17,7 @@ abstract class GenerateConfigTask : org.gradle.api.DefaultTask() {
     @get:org.gradle.api.tasks.OutputDirectory
     abstract val outputDir: org.gradle.api.file.DirectoryProperty
 
-    @org.gradle.api.tasks.TaskAction
+    @TaskAction
     fun generate() {
         val props = Properties()
         if (localProperties.asFile.get().exists()) {
