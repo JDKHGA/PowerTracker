@@ -1,14 +1,13 @@
 package com.example.powertracker.auth
 
-import com.example.powertracker.SupabaseConfig
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.postgrest.Postgrest
 
 val supabase = createSupabaseClient(
-    supabaseUrl = SupabaseConfig.URL,
-    supabaseKey = SupabaseConfig.KEY
+    supabaseUrl = "https://donuohzbovqftxfnpbww.supabase.co",
+    supabaseKey = "sb_publishable_7selzxmFkaPYE5ShyOlSOw_sdlMMyM5"
 ) {
     install(Auth) {
         // This enables session persistence automatically

@@ -54,7 +54,7 @@ fun MainScaffold(rootNavController: androidx.navigation.NavHostController) {
             startDestination = BottomNavItem.Home.route,
             modifier = Modifier.padding(
                 top = innerPadding.calculateTopPadding(),
-                bottom = 70.dp
+                bottom = 68.dp
             )
         ) {
             composable(BottomNavItem.Home.route) {
