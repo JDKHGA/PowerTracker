@@ -11,19 +11,34 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 2. Fetch last 50 usage logs
-    const { data: logs } = await supabase
+    // 2. Fetch usage logs for the last 7 days to summarize
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    
+    const { data: rawLogs } = await supabase
       .from('usage_logs')
       .select('usage_kwh, logged_at')
       .eq('meter_id', meterId)
-      .order('logged_at', { ascending: false })
-      .limit(50)
+      .gte('logged_at', sevenDaysAgo.toISOString())
+      .order('logged_at', { ascending: true })
+
+    // Summarize logs by day
+    const dailySummaries: Record<string, number> = {}
+    rawLogs?.forEach(log => {
+      const date = log.logged_at.split('T')[0]
+      dailySummaries[date] = (dailySummaries[date] || 0) + log.usage_kwh
+    })
+    
+    const summarizedLogs = Object.entries(dailySummaries).map(([date, totalUsage]) => ({
+      date,
+      totalUsageKwh: parseFloat(totalUsage.toFixed(2))
+    }))
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY secret is missing!")
 
-    // 3. Call Gemini with specific instructions for a natural language forecast
-    const MODEL_ID = "gemini-3-flash-preview"
+    // 3. Call Gemini with summarized data
+    const MODEL_ID = "gemini-3-flash-preview" // Recommended faster model
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
@@ -37,14 +52,13 @@ serve(async (req) => {
               {
                 text: `You are an energy expert analyzer.
                       Current Meter Balance: ${balanceKwh} kWh.
-                      Historical Logs (last 50 entries): ${JSON.stringify(logs)}.
+                      Daily Usage Summary (last 7 days): ${JSON.stringify(summarizedLogs)}.
 
                       Tasks:
-                      1. Calculate the daily burn rate based on the logs.
+                      1. Calculate the daily burn rate based on the summarized daily totals.
                       2. Using the current balance of ${balanceKwh} kWh, predict exactly when it will hit zero.
                       3. Write a human-like forecast sentence (e.g., "At your current rate of 2.1 kWh/day, your credit is expected to last until Friday evening, Dec 27").
-                      4. Identify peak usage hours and patterns.
-                      5. Provide 3 specific, actionable saving tips based on the logs.
+                      4. Provide 3 specific, actionable saving tips based on the observed daily usage patterns.
 
                       Return ONLY a raw JSON object with this exact structure:
                       {"forecastDate": "string", "peakUsageDescription": "string", "suggestions": ["string"]}`

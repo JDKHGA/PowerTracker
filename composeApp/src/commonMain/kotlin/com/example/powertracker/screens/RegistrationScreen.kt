@@ -23,6 +23,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,30 +69,67 @@ fun RegistrationScreen(navController: NavController? = null) {
     var error by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     Box(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(0.9f),
-            elevation = CardDefaults.cardElevation(8.dp),
-            shape = RoundedCornerShape(16.dp)
+        // Header Section
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.35f)
+                .background(IndigoGradient)
+                .padding(32.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(70.dp),
+                    tint = Color.White
+                )
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Create Account",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    text = "Join Us",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
                 )
                 Text(
-                    text = "Start tracking your power usage today",
-                    fontSize = 16.sp,
-                    color = Color.Gray
+                    text = "Start your energy saving journey",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+            }
+        }
+
+        // Registration Form Section
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 240.dp)
+                .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp)),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 2.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 32.dp)
+                    .verticalScroll(scrollState),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Text(
+                    text = "Create Account",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -92,7 +138,10 @@ fun RegistrationScreen(navController: NavController? = null) {
                     value = fullName,
                     onValueChange = { fullName = it },
                     label = "Full Name",
-                    placeholder = "John Doe"
+                    placeholder = "John Doe",
+                    trailingIcon = {
+                        Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -100,8 +149,11 @@ fun RegistrationScreen(navController: NavController? = null) {
                 CustomTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = "Email",
-                    placeholder = "your@email.com"
+                    label = "Email Address",
+                    placeholder = "john@example.com",
+                    trailingIcon = {
+                        Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -115,7 +167,7 @@ fun RegistrationScreen(navController: NavController? = null) {
                     trailingIcon = {
                         val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(image, "toggle password visibility")
+                            Icon(image, "toggle password visibility", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         }
                     }
                 )
@@ -131,7 +183,7 @@ fun RegistrationScreen(navController: NavController? = null) {
                     trailingIcon = {
                         val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                         IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                            Icon(image, "toggle password visibility")
+                            Icon(image, "toggle password visibility", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         }
                     }
                 )
@@ -139,8 +191,10 @@ fun RegistrationScreen(navController: NavController? = null) {
                 error?.let {
                     Text(
                         text = it,
-                        color = Color.Red,
-                        modifier = Modifier.padding(top = 8.dp)
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 12.dp)
                     )
                 }
 
@@ -148,14 +202,18 @@ fun RegistrationScreen(navController: NavController? = null) {
                     Text(
                         text = it,
                         color = Color(0xFF4CAF50),
-                        modifier = Modifier.padding(top = 8.dp)
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 12.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
                 Button(
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                     onClick = {
                         if (password != confirmPassword) {
                             error = "Passwords do not match"
@@ -187,22 +245,34 @@ fun RegistrationScreen(navController: NavController? = null) {
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     contentPadding = PaddingValues(0.dp),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .background(IndigoGradient, RoundedCornerShape(12.dp))
+                            .background(IndigoGradient, RoundedCornerShape(16.dp))
                             .fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Register", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Register",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                TextButton(onClick = { navController?.popBackStack() }) {
-                    Text("Already have an account? Login")
+                TextButton(
+                    onClick = { navController?.popBackStack() },
+                    modifier = Modifier.padding(bottom = 32.dp)
+                ) {
+                    Text(
+                        text = "Already have an account? Login",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }

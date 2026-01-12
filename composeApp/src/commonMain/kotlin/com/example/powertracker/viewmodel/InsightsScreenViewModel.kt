@@ -198,7 +198,7 @@ class InsightsScreenViewModel: ViewModel() {
             ) {
                 contentType(ContentType.Application.Json)
                 timeout {
-                    requestTimeoutMillis = 30000L
+                    requestTimeoutMillis = 60000L
                 }
                 setBody(AIInsightRequest(meterId = meterId, balanceKwh = balanceKwh))
             }
