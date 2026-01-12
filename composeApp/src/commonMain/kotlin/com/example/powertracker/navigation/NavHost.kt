@@ -70,7 +70,11 @@ fun MainScaffold(rootNavController: androidx.navigation.NavHostController) {
                 InsightsScreen(navController)
             }
             composable(BottomNavItem.Settings.route) {
-                SettingsScreen(navController)
+                SettingsScreen(navController, onLogout = {
+                    rootNavController.navigate("login") {
+                        popUpTo(0)
+                    }
+                })
             }
             composable("addToken") {
                 AddTokenScreen(navController)

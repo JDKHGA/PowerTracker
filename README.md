@@ -12,7 +12,7 @@ For a detailed look at my background, the project's inception, and the technolog
 
 A short video demonstrating the app's features can be found here:
 
-➡️ **[Link to your demo video]** *(Please replace this with the actual link to your video)*
+➡️ **https://drive.google.com/file/d/1MU9OhghDqoT6RLtPlXqt4kbzgJ-FWbxy/view**
 
 ## Key Features
 
@@ -32,17 +32,24 @@ This project connects to a live Supabase backend for the database, user authenti
     git clone https://github.com/JDKHGA/PowerTracker.git 
     ```
 
-2.  **Open and Run in Android Studio:**
+2.  **Run on Android:**
     - Open the cloned project in the latest version of Android Studio.
     - Wait for Gradle to sync.
     - Select an Android device or emulator.
     - Select the `composeApp` run configuration and click the ▶️ **Run** button.
 
+3.  **Run on iOS:**
+    - **Prerequisites:** A Mac with the latest version of Xcode installed.
+    - Open the project in Android Studio.
+    - Select an iOS simulator from the run configuration dropdown (e.g., 'iosApp' on 'iPhone 15 Pro').
+    - Click the ▶️ **Run** button.
+    - The app will build and launch in the selected iOS simulator.
+
 ## Backend & Database
 
 - The app is backed by a **Supabase** project, which handles the database, authentication, and the AI serverless function.
 - The AI feature securely calls the Gemini API via a Supabase Edge Function. The API key is stored as a secret in the Supabase project and is never exposed to the client.
-- The complete database structure can be reviewed in the `supabase/schema.sql` file.
+- The complete database structure can be reivewed in the `supabase/schema.sql` file.
 
 ## License
 

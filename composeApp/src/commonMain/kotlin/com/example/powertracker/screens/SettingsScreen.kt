@@ -33,7 +33,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun SettingsScreen(navController: NavController? = null) {
+fun SettingsScreen(navController: NavController? = null, onLogout: () -> Unit = {}) {
     val viewModel: SettingsScreenViewModel = viewModel { SettingsScreenViewModel() }
     val snackbarHostState = remember { SnackbarHostState() }
     val notificationService = getNotificationService()
@@ -159,9 +159,7 @@ fun SettingsScreen(navController: NavController? = null) {
                 onConfirm = {
                     viewModel.showLogoutDialog.value = false
                     viewModel.logout {
-                        navController?.navigate("login") {
-                            popUpTo(0)
-                        }
+                        onLogout()
                     }
                 },
                 onDismiss = { viewModel.showLogoutDialog.value = false }
