@@ -25,6 +25,7 @@ import com.example.powertracker.cards.homescreen.BalanceCard
 import com.example.powertracker.cards.homescreen.PredictionCard
 import com.example.powertracker.cards.homescreen.UsageCard
 import com.example.powertracker.row.QuickActionsRow
+import com.example.powertracker.getNotificationService
 import com.example.powertracker.viewmodel.HomeViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -34,9 +35,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun HomeScreen(navController: NavController? = null) {
 
     val viewModel: HomeViewModel = viewModel { HomeViewModel() }
+    val notificationService = getNotificationService()
     var showMeterDropdown by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        viewModel.setNotificationService(notificationService)
         viewModel.loadMeters()
     }
 

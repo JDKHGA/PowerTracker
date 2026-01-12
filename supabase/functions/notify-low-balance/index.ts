@@ -49,15 +49,24 @@ serve(async (req) => {
 
       console.log(`ALARM: Low balance for user ${record.user_id}. Meter: ${record.name}. Balance: ${record.balance_kwh} kWh`)
 
-      // Example for a generic notification service:
+      // SIMULATION: In a real app, you would call FCM or another push service here.
+      // For this project, we'll simulate success.
+      console.log(`Sending push notifications to ${fcmTokens.length} devices...`)
+      
       /*
-      const response = await fetch('https://api.your-notification-provider.com/send', {
+      // Real implementation example with FCM:
+      const response = await fetch('https://fcm.googleapis.com/fcm/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `key=${Deno.env.get('FCM_SERVER_KEY')}`
+        },
         body: JSON.stringify({
-          tokens: fcmTokens,
-          title: "Low Balance Alert",
-          body: `Your meter ${record.name} has only ${record.balance_kwh} kWh remaining.`
+          registration_ids: fcmTokens,
+          notification: {
+            title: "Low Balance Alert",
+            body: `Your meter ${record.name} has only ${record.balance_kwh} kWh remaining.`
+          }
         })
       })
       */

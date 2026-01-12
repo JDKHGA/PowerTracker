@@ -87,3 +87,46 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- 5. User Settings Table
+create table user_settings (
+  user_id uuid references profiles(id) on delete cascade not null primary key,
+  notifications_enabled boolean default false not null,
+  alert_threshold double precision default 10.0 not null,
+  backup_enabled boolean default false not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 6. Device Tokens Table (for Push Notifications)
+create table device_tokens (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references profiles(id) on delete cascade not null,
+  fcm_token text not null,
+  platform text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(user_id, fcm_token)
+);
+
+-- RLS for new tables
+alter table user_settings enable row level security;
+alter table device_tokens enable row level security;
+
+create policy "Users can manage own settings" on user_settings
+  for all using (auth.uid() = user_id);
+
+create policy "Users can manage own device tokens" on device_tokens
+  for all using (auth.uid() = user_id);
+
+-- Trigger: Automatically create default settings for new user
+create function public.handle_new_user_settings()
+returns trigger as $$
+begin
+  insert into public.user_settings (user_id)
+  values (new.id);
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created_settings
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user_settings();

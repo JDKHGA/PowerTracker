@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.powertracker.auth.supabase
 import com.example.powertracker.models.Meter
 import com.example.powertracker.models.UsageLog
+import com.example.powertracker.NotificationService
+import com.example.powertracker.models.UserSettings
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
@@ -27,6 +29,12 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 class HomeViewModel : ViewModel() {
+
+    private var notificationService: NotificationService? = null
+
+    fun setNotificationService(service: NotificationService) {
+        this.notificationService = service
+    }
 
     val meters = mutableStateListOf<Meter>()
     val selectedMeter = mutableStateOf<Meter?>(null)
@@ -168,6 +176,26 @@ class HomeViewModel : ViewModel() {
                     balanceGhs.value = "GHS ${formatValue(newBalanceGhs)}"
                     
                     val updatedMeter = meter.copy(balanceKwh = newBalanceKwh, balanceGhs = newBalanceGhs)
+                    
+                    // Check for low balance notification
+                    try {
+                        val user = supabase.auth.currentUserOrNull()
+                        if (user != null) {
+                            val settings = supabase.postgrest.from("user_settings")
+                                .select { filter { eq("user_id", user.id) } }
+                                .decodeSingleOrNull<UserSettings>()
+                            
+                            if (settings != null && settings.notificationsEnabled && newBalanceKwh <= settings.alertThreshold) {
+                                notificationService?.showNotification(
+                                    title = "Low Balance Alert",
+                                    message = "Your meter ${meter.name} has only ${formatValue(newBalanceKwh)} kWh remaining."
+                                )
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Ignore notification errors
+                    }
+
                     loadHistoricalLogs(updatedMeter)
                 } else {
                     balanceKwh.value = "${formatValue(meter.balanceKwh)} kWh"
@@ -189,13 +217,13 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val now = Instant.fromEpochMilliseconds(getCurrentEpochMillis())
-                val thirtyDaysAgo = now.minus(30, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
+                val sevenDaysAgo = now.minus(7, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
                 
                 val logs = supabase.postgrest.from("usage_logs")
                     .select {
                         filter {
                             eq("meter_id", meter.id!!)
-                            gte("logged_at", thirtyDaysAgo.toString())
+                            gte("logged_at", sevenDaysAgo.toString())
                         }
                     }.decodeList<UsageLog>()
                 
