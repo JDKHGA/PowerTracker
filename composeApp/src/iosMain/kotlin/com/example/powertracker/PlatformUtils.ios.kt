@@ -31,12 +31,12 @@ actual fun ShareData(data: String, onFinished: () -> Unit) {
         if (data.isNotEmpty()) {
             val window = UIApplication.sharedApplication.keyWindow
             val viewController = window?.rootViewController
-            
+
             if (viewController != null) {
                 val tempDir = NSTemporaryDirectory()
                 val fileName = "powertracker_data.csv"
                 val fileURL = NSURL.fileURLWithPath(tempDir + fileName)
-                
+
                 (data as platform.Foundation.NSString).writeToURL(
                     url = fileURL,
                     atomically = true,
@@ -48,12 +48,12 @@ actual fun ShareData(data: String, onFinished: () -> Unit) {
                     activityItems = listOf(fileURL),
                     applicationActivities = null
                 )
-                
+
                 activityViewController.popoverPresentationController?.let {
                     it.sourceView = viewController.view
                     it.sourceRect = viewController.view.bounds
                 }
-                
+
                 viewController.presentViewController(
                     viewControllerToPresent = activityViewController,
                     animated = true,
@@ -68,10 +68,21 @@ actual fun ShareData(data: String, onFinished: () -> Unit) {
 
 actual fun getPlatformName(): String = "iOS"
 
-class IosNotificationService : NSObject(), NotificationService, UNUserNotificationCenterDelegateProtocol {
-    
+class NotificationDelegate : NSObject(), UNUserNotificationCenterDelegateProtocol {
+    override fun userNotificationCenter(
+        center: UNUserNotificationCenter,
+        willPresentNotification: platform.UserNotifications.UNNotification,
+        withCompletionHandler: (platform.UserNotifications.UNNotificationPresentationOptions) -> Unit
+    ) {
+        withCompletionHandler(UNNotificationPresentationOptionAlert or UNNotificationPresentationOptionSound)
+    }
+}
+
+class IosNotificationService : NotificationService {
+    private val notificationDelegate = NotificationDelegate()
+
     init {
-        UNUserNotificationCenter.currentNotificationCenter().delegate = this
+        UNUserNotificationCenter.currentNotificationCenter().delegate = notificationDelegate
     }
 
     override fun showNotification(title: String, message: String) {
@@ -103,14 +114,6 @@ class IosNotificationService : NSObject(), NotificationService, UNUserNotificati
         // Mock token for iOS demonstration
         val timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
         onTokenReceived("ios_mock_token_$timestamp")
-    }
-
-    override fun userNotificationCenter(
-        center: UNUserNotificationCenter,
-        willPresentNotification: platform.UserNotifications.UNNotification,
-        withCompletionHandler: (platform.UserNotifications.UNNotificationPresentationOptions) -> Unit
-    ) {
-        withCompletionHandler(UNNotificationPresentationOptionAlert or UNNotificationPresentationOptionSound)
     }
 }
 

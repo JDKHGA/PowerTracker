@@ -36,73 +36,30 @@ fun HomeScreen(navController: NavController? = null) {
     val viewModel: HomeViewModel = viewModel { HomeViewModel() }
     var showMeterDropdown by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        viewModel.loadMeters()
+    }
+
     Scaffold(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 30.sp
-                                    )
-                                ) {
-                                    append("Power")
-                                }
-                                withStyle(style = SpanStyle(fontSize = 30.sp, color = Color.Gray)) {
-                                    append("Tracker")
-                                }
-                            }
-                        )
-
-                        // Meter Selection Dropdown
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .width(150.dp)
-                                    .height(56.dp)
-                                    .background(Color.LightGray.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                                    .clickable { if (!viewModel.isLoading.value) showMeterDropdown = true }
-                                    .padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.CenterStart
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 30.sp
+                                )
                             ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = viewModel.selectedMeter.value?.name ?: "Select a meter",
-                                        color = if (viewModel.selectedMeter.value == null) Color.Gray else Color.Black
-                                    )
-                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                                }
-
-                                DropdownMenu(
-                                    expanded = showMeterDropdown,
-                                    onDismissRequest = { showMeterDropdown = false },
-                                    modifier = Modifier.fillMaxWidth(0.9f)
-                                ) {
-                                    viewModel.meters.forEach { meter ->
-                                        DropdownMenuItem(
-                                            text = { Text(meter.name) },
-                                            onClick = {
-                                                viewModel.selectMeter(meter)
-                                                showMeterDropdown = false
-                                            }
-                                        )
-                                    }
-                                }
+                                append("Power")
+                            }
+                            withStyle(style = SpanStyle(fontSize = 30.sp, color = Color.Gray)) {
+                                append("Tracker")
                             }
                         }
-                    }
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
@@ -115,6 +72,44 @@ fun HomeScreen(navController: NavController? = null) {
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Meter Selection Dropdown
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(Color.LightGray.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                    .clickable { if (!viewModel.isLoading.value) showMeterDropdown = true }
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = viewModel.selectedMeter.value?.name ?: "Select a meter",
+                        color = if (viewModel.selectedMeter.value == null) Color.Gray else Color.Black
+                    )
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+
+                DropdownMenu(
+                    expanded = showMeterDropdown,
+                    onDismissRequest = { showMeterDropdown = false },
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                ) {
+                    viewModel.meters.forEach { meter ->
+                        DropdownMenuItem(
+                            text = { Text(meter.name) },
+                            onClick = {
+                                viewModel.selectMeter(meter)
+                                showMeterDropdown = false
+                            }
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

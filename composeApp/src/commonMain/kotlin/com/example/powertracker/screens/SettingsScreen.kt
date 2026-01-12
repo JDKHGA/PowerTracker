@@ -125,13 +125,7 @@ fun SettingsScreen(navController: NavController? = null) {
                         onClearDataRequest = { viewModel.showClearDataDialog.value = true },
                         onExportData = { viewModel.exportData() },
                         onPrivacyPolicyRequest = { viewModel.showPrivacyPolicy.value = true },
-                        onTermsOfServiceRequest = { viewModel.showTermsOfService.value = true },
-                        onTestNotification = {
-                            notificationService.showNotification(
-                                title = "PowerTracker Test",
-                                message = "This is a test notification from your app!"
-                            )
-                        }
+                        onTermsOfServiceRequest = { viewModel.showTermsOfService.value = true }
                     )
                 }
             }

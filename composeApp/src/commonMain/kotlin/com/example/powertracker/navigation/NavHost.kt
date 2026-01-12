@@ -19,7 +19,7 @@ fun AppNavHost() {
     
     // Check if user is already logged in
     val session = supabase.auth.currentSessionOrNull()
-    val startDestination = if (session != null) BottomNavItem.Home.route else "login"
+    val startDestination = if (session != null) "main" else "login"
 
     NavHost(
         navController = navController,
@@ -64,13 +64,13 @@ fun MainScaffold(rootNavController: androidx.navigation.NavHostController) {
                 MetersScreen(navController)
             }
             composable(BottomNavItem.History.route) {
-                TokenHistoryScreen()
+                TokenHistoryScreen(navController)
             }
             composable(BottomNavItem.Insights.route) {
-                InsightsScreen()
+                InsightsScreen(navController)
             }
             composable(BottomNavItem.Settings.route) {
-                SettingsScreen()
+                SettingsScreen(navController)
             }
             composable("addToken") {
                 AddTokenScreen(navController)

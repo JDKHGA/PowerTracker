@@ -1,64 +1,68 @@
-# PowerTracker
+# PowerTracker: Kotlin Student Coding Competition Submission
 
-A cross-platform application built with Kotlin Multiplatform that helps users track their electricity meter balance and consumption.
+## About The Project
 
-## 🌟 Features
+PowerTracker is a Kotlin Multiplatform app designed to help users with prepaid electricity meters track their energy consumption, manage their balance, and gain insights into their usage patterns. The app is built with a focus on a shared codebase for both Android and iOS, leveraging the power of KMP for a consistent and maintainable solution.
 
-*   **Real-time Balance Tracking:** Always know your current meter balance.
-*   **Token Management:** Easily add new tokens to top-up your meter.
-*   **Consumption Insights:** Visualize your electricity usage with insightful charts and summaries.
-*   **Meter Management:** Add and manage multiple electricity meters.
-*   **User Authentication:** Secure login and registration for users.
-*   **Cross-Platform:** A single codebase for both Android and iOS.
+For a detailed look at my background, the project's inception, and the technologies used, please see the full essay.
 
-## 🛠️ Technologies Used
+➡️ **[Read the Full Essay](./ESSAY.md)**
 
-*   **Kotlin Multiplatform:** For sharing code between Android and iOS.
-*   **Jetpack Compose:** For building the user interface for both platforms.
-*   **Supabase:** As the backend for database, authentication, and serverless functions.
-*   **Ktor:** As the HTTP client for network requests.
-*   **Koala Plot:** For creating the consumption charts.
-*   **Compose Navigation:** For navigating between screens.
-*   **Multiplatform Settings:** For persisting simple data locally.
+## Key Features
 
-## 🚀 Setup and Installation
+- **Real-Time Balance Tracking:** See your electricity balance in both kWh and local currency.
+- **Automated Usage Simulation:** Intelligently simulates energy consumption to provide a dynamic look at the remaining balance.
+- **AI-Powered Insights:** Uses a Supabase Edge Function to forecast when credit will run out.
+- **Historical Data and Trends:** View token purchase history and daily usage trends.
+- **Multi-Meter Support:** Add and manage multiple prepaid meters.
+- **Cross-Platform:** A single shared codebase for both Android and iOS.
 
-Follow these steps to get the project up and running.
+## Demo Video
 
-### Prerequisites
+*(A short 3-5 minute video demonstrating the app's features is highly recommended. You can link to it here.)*
 
-*   Android Studio (latest version recommended)
-*   A Supabase account.
-*   For iOS: a Mac with Xcode installed.
+[Link to your demo video here]
 
-### Steps
+## Installation & Setup Instructions
 
-1.  **Clone the repository:**
+To get the PowerTracker app up and running, follow these steps:
+
+1.  **Clone the Repository:**
+
     ```bash
-    git clone https://github.com/JDKHGA/PowerTracker.git
+    git clone [Your GitHub Repository URL]
     ```
 
-2.  **Set up Supabase Project:**
-    *   Go to [supabase.com](https://supabase.com) and create a new project.
-    *   Once your project is created, navigate to the **SQL Editor**.
-    *   Open the `supabase/schema.sql` file from this repository.
-    *   Copy the entire contents of the file, paste it into the SQL Editor, and click **Run**. This will create the necessary tables and database structure.
+2.  **Create a `local.properties` File:**
 
-3.  **Add Your Supabase Credentials:**
-    *   In your Supabase project settings, go to the **API** section to find your **Project URL** and **anon public key**.
-    *   In the root folder of this project, create a new file named `local.properties`.
-    *   Add your credentials to the file like this:
-      ```properties
-      supabase.url=YOUR_SUPABASE_URL
-      supabase.key=YOUR_SUPABASE_ANON_KEY
-      ```
+    In the root directory of the project, create a new file named `local.properties` and add your Supabase URL and Key:
 
-4.  **Open and Run the Project:**
-    *   Open the cloned project in Android Studio.
-    *   The IDE may ask you to sync the project with Gradle. Allow it to sync. This will generate necessary files.
-    *   Select the `composeApp` (for Android) or `iosApp` (for iOS) run configuration.
-    *   Click the **Run** button.
+    ```properties
+    supabase.url=YOUR_SUPABASE_URL
+    supabase.key=YOUR_SUPABASE_ANON_KEY
+    ```
 
-## 🎬 Demo
+3.  **Run the App:**
 
-*[Optional but recommended: Insert a link to a short screencast video demonstrating your project's main features.]*
+    #### Android
+
+    1.  Open the project in Android Studio.
+    2.  Wait for the Gradle sync to complete.
+    3.  Select the `composeApp` run configuration.
+    4.  Choose an Android device or emulator and click the "Run" button.
+
+    #### iOS
+
+    1.  Ensure you have Xcode installed on your macOS machine.
+    2.  Open a terminal and navigate to the project's root directory.
+    3.  Run the following command to prepare the Xcode workspace:
+        ```bash
+        ./gradlew :composeApp:podInstall
+        ```
+    4.  Open the generated `iosApp/iosApp.xcworkspace` file in Xcode.
+    5.  Select an iOS simulator or a connected device.
+    6.  Click the "Run" button in Xcode.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.

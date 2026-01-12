@@ -189,13 +189,13 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val now = Instant.fromEpochMilliseconds(getCurrentEpochMillis())
-                val sevenDaysAgo = now.minus(7, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
+                val thirtyDaysAgo = now.minus(30, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
                 
                 val logs = supabase.postgrest.from("usage_logs")
                     .select {
                         filter {
                             eq("meter_id", meter.id!!)
-                            gte("logged_at", sevenDaysAgo.toString())
+                            gte("logged_at", thirtyDaysAgo.toString())
                         }
                     }.decodeList<UsageLog>()
                 

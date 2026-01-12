@@ -36,7 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,7 +58,7 @@ fun InsightsScreen(navController: NavController? = null) {
     val viewModel: InsightsScreenViewModel = viewModel { InsightsScreenViewModel() }
     val homeViewModel: HomeViewModel = viewModel { HomeViewModel() }
     var showMeterDropdown by remember { mutableStateOf(false) }
-    
+
     val selectedMeter = homeViewModel.selectedMeter.value
 
     LaunchedEffect(selectedMeter) {
@@ -69,58 +72,21 @@ fun InsightsScreen(navController: NavController? = null) {
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            "Insights",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        )
-
-                        // Meter Selection Dropdown
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .width(150.dp)
-                                    .height(56.dp)
-                                    .background(Color.LightGray.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                                    .clickable { if (!homeViewModel.isLoading.value) showMeterDropdown = true }
-                                    .padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.CenterStart
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 30.sp
+                                )
                             ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = homeViewModel.selectedMeter.value?.name ?: "Select a meter",
-                                        color = if (homeViewModel.selectedMeter.value == null) Color.Gray else Color.Black
-                                    )
-                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                                }
-
-                                DropdownMenu(
-                                    expanded = showMeterDropdown,
-                                    onDismissRequest = { showMeterDropdown = false },
-                                    modifier = Modifier.fillMaxWidth(0.9f)
-                                ) {
-                                    homeViewModel.meters.forEach { meter ->
-                                        DropdownMenuItem(
-                                            text = { Text(meter.name) },
-                                            onClick = {
-                                                homeViewModel.selectMeter(meter)
-                                                showMeterDropdown = false
-                                            }
-                                        )
-                                    }
-                                }
+                                append("Power")
+                            }
+                            withStyle(style = SpanStyle(fontSize = 30.sp, color = Color.Gray)) {
+                                append("Insights")
                             }
                         }
-                    }
+                    )
                 },
                 navigationIcon = {
                     androidx.compose.material3.IconButton(onClick = { navController?.popBackStack() }) {
@@ -131,13 +97,57 @@ fun InsightsScreen(navController: NavController? = null) {
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+        ) {
+            // Meter Selection Dropdown
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(Color.LightGray.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                    .clickable { if (!homeViewModel.isLoading.value) showMeterDropdown = true }
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = homeViewModel.selectedMeter.value?.name ?: "Select a meter",
+                        color = if (homeViewModel.selectedMeter.value == null) Color.Gray else Color.Black
+                    )
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+
+                DropdownMenu(
+                    expanded = showMeterDropdown,
+                    onDismissRequest = { showMeterDropdown = false },
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                ) {
+                    homeViewModel.meters.forEach { meter ->
+                        DropdownMenuItem(
+                            text = { Text(meter.name) },
+                            onClick = {
+                                homeViewModel.selectMeter(meter)
+                                showMeterDropdown = false
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             if (viewModel.isLoading.value) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item {
