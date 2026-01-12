@@ -76,6 +76,12 @@ android {
     namespace = "com.example.powertracker"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    sourceSets {
+        getByName("main") {
+            res.srcDirs("src/androidMain/res")
+        }
+    }
+
     defaultConfig {
         applicationId = "com.example.powertracker"
         minSdk = libs.versions.android.minSdk.get().toInt()
