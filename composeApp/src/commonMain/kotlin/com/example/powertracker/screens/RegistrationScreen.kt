@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -62,16 +63,42 @@ fun RegistrationScreen(navController: NavController? = null) {
     val scope = rememberCoroutineScope()
 
     Box(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .background(IndigoGradient),
+        contentAlignment = Alignment.BottomCenter
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 60.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Join Us",
+                fontSize = 40.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+            Text(
+                text = "Start your energy journey",
+                fontSize = 16.sp,
+                color = Color.White.copy(alpha = 0.8f)
+            )
+        }
+
         Card(
-            modifier = Modifier.fillMaxWidth(0.9f),
-            elevation = CardDefaults.cardElevation(8.dp),
-            shape = RoundedCornerShape(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f),
+            elevation = CardDefaults.cardElevation(0.dp),
+            shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 32.dp, vertical = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -80,8 +107,9 @@ fun RegistrationScreen(navController: NavController? = null) {
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Start tracking your power usage today",
+                    text = "Sign up to get started",
                     fontSize = 16.sp,
                     color = Color.Gray
                 )
@@ -139,8 +167,9 @@ fun RegistrationScreen(navController: NavController? = null) {
                 error?.let {
                     Text(
                         text = it,
-                        color = Color.Red,
-                        modifier = Modifier.padding(top = 8.dp)
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 12.dp)
                     )
                 }
 
@@ -148,14 +177,15 @@ fun RegistrationScreen(navController: NavController? = null) {
                     Text(
                         text = it,
                         color = Color(0xFF4CAF50),
-                        modifier = Modifier.padding(top = 8.dp)
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 12.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
                     onClick = {
                         if (password != confirmPassword) {
                             error = "Passwords do not match"
@@ -187,22 +217,33 @@ fun RegistrationScreen(navController: NavController? = null) {
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     contentPadding = PaddingValues(0.dp),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .background(IndigoGradient, RoundedCornerShape(12.dp))
+                            .background(IndigoGradient, RoundedCornerShape(16.dp))
                             .fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Register", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Register", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.weight(1f))
 
-                TextButton(onClick = { navController?.popBackStack() }) {
-                    Text("Already have an account? Login")
+                TextButton(
+                    onClick = { navController?.popBackStack() },
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Text(
+                        "Already have an account? ",
+                        color = Color.Gray
+                    )
+                    Text(
+                        "Login",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
