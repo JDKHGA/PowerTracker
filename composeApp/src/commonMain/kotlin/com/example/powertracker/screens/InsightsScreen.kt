@@ -44,6 +44,7 @@ import androidx.navigation.NavController
 import com.example.powertracker.card.insights.*
 import com.example.powertracker.cards.insightsscreen.RecommendationsCard
 import com.example.powertracker.cards.insightsscreen.TrendCard
+import com.example.powertracker.elements.TopBar.TopBar.TopBar
 import com.example.powertracker.viewmodel.HomeViewModel
 import com.example.powertracker.viewmodel.InsightsScreenViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -67,14 +68,12 @@ fun InsightsScreen(navController: NavController? = null) {
     Scaffold(
         containerColor = Color.White,
         topBar = {
-            TopAppBar(
-                title = { Text("Insights", fontSize = 24.sp, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    androidx.compose.material3.IconButton(onClick = { navController?.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
+            TopBar(
+                text = "Insights",
+                onBack = {
+                    navController?.popBackStack()
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                icon = Icons.AutoMirrored.Filled.ArrowBack
             )
         }
     ) { paddingValues ->
