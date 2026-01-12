@@ -20,7 +20,7 @@ architecture forced a disciplined separation of concerns: the shared layer handl
 access and validation, while platform-specific layers focus on the UI.
 
 For the backend, I integrated Supabase, leveraging its PostgreSQL database and Row-Level
-Security (RLS) to ensure strict data ownership—a direct application of my professional
+Security (RLS) to ensure strict data ownership a direct application of my professional
 IAM experience. PowerTracker represents my commitment to building secure, maintainable
 applications and my desire to solve local problems using modern technologies like Kotlin.
 This project is a significant milestone in my journey toward becoming a specialized
