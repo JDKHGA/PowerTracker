@@ -3,7 +3,7 @@
 My name is John Deladem Kpormegbe, a Computer Science graduate from Kwame Nkrumah
 University of Science and Technology (KNUST). My background is rooted in software
 engineering and cloud infrastructure, having served as an Infrastructure Consultant
-at Axxend. There, I architected identity solutions using Microsoft Entra ID and
+at Axxend Corporation Ghana. There, I architected identity solutions using Microsoft Entra ID and
 orchestrated large-scale migrations for over 500 users with 100% data integrity.
 My experience also includes maintaining strict security standards at Tullow Oil Ghana, which
 instilled in me a "security-first" mindset that I bring to every line of code.
