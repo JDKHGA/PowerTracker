@@ -20,8 +20,9 @@ abstract class GenerateConfigTask : org.gradle.api.DefaultTask() {
     @TaskAction
     fun generate() {
         val props = Properties()
-        if (localProperties.asFile.get().exists()) {
-            props.load(localProperties.asFile.get().inputStream())
+        val localFile = localProperties.orNull?.asFile
+        if (localFile != null && localFile.exists()) {
+            props.load(localFile.inputStream())
         }
 
         val supabaseUrl = System.getenv("SUPABASE_URL")
@@ -49,7 +50,10 @@ abstract class GenerateConfigTask : org.gradle.api.DefaultTask() {
 
 // Task to generate configuration from Env Vars (CI) or local properties (Dev)
 val generateConfig = tasks.register<GenerateConfigTask>("generateConfig") {
-    localProperties.set(rootProject.file("local.properties"))
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        localProperties.set(localFile)
+    }
     outputDir.set(layout.buildDirectory.dir("generated/powertracker/commonMain/kotlin"))
 }
 
