@@ -8,60 +8,41 @@ For a detailed look at my background, the project's inception, and the technolog
 
 ➡️ **[Read the Full Essay](./ESSAY.md)**
 
+## Demo Video
+
+A short video demonstrating the app's features can be found here:
+
+➡️ **[Link to your demo video]** *(Please replace this with the actual link to your video)*
+
 ## Key Features
 
 - **Real-Time Balance Tracking:** See your electricity balance in both kWh and local currency.
 - **Automated Usage Simulation:** Intelligently simulates energy consumption to provide a dynamic look at the remaining balance.
-- **AI-Powered Insights:** Uses a Supabase Edge Function to forecast when credit will run out.
+- **AI-Powered Insights:** Uses a secure Supabase Edge Function to forecast when credit will run out.
 - **Historical Data and Trends:** View token purchase history and daily usage trends.
 - **Multi-Meter Support:** Add and manage multiple prepaid meters.
 - **Cross-Platform:** A single shared codebase for both Android and iOS.
 
-## Demo Video
+## How to Run the App
 
-*(A short 3-5 minute video demonstrating the app's features is highly recommended. You can link to it here.)*
-
-[Link to your demo video here]
-
-## Installation & Setup Instructions
-
-To get the PowerTracker app up and running, follow these steps:
+This project connects to a live Supabase backend for the database, user authentication, and AI features. No special setup is required.
 
 1.  **Clone the Repository:**
-
     ```bash
-    git clone [Your GitHub Repository URL]
+    git clone https://github.com/JDKHGA/PowerTracker.git 
     ```
 
-2.  **Create a `local.properties` File:**
+2.  **Open and Run in Android Studio:**
+    - Open the cloned project in the latest version of Android Studio.
+    - Wait for Gradle to sync.
+    - Select an Android device or emulator.
+    - Select the `composeApp` run configuration and click the ▶️ **Run** button.
 
-    In the root directory of the project, create a new file named `local.properties` and add your Supabase URL and Key:
+## Backend & Database
 
-    ```properties
-    supabase.url=YOUR_SUPABASE_URL
-    supabase.key=YOUR_SUPABASE_ANON_KEY
-    ```
-
-3.  **Run the App:**
-
-    #### Android
-
-    1.  Open the project in Android Studio.
-    2.  Wait for the Gradle sync to complete.
-    3.  Select the `composeApp` run configuration.
-    4.  Choose an Android device or emulator and click the "Run" button.
-
-    #### iOS
-
-    1.  Ensure you have Xcode installed on your macOS machine.
-    2.  Open a terminal and navigate to the project's root directory.
-    3.  Run the following command to prepare the Xcode workspace:
-        ```bash
-        ./gradlew :composeApp:podInstall
-        ```
-    4.  Open the generated `iosApp/iosApp.xcworkspace` file in Xcode.
-    5.  Select an iOS simulator or a connected device.
-    6.  Click the "Run" button in Xcode.
+- The app is backed by a **Supabase** project, which handles the database, authentication, and the AI serverless function.
+- The AI feature securely calls the Gemini API via a Supabase Edge Function. The API key is stored as a secret in the Supabase project and is never exposed to the client.
+- The complete database structure can be reviewed in the `supabase/schema.sql` file.
 
 ## License
 
